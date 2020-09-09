@@ -18,6 +18,8 @@ west=-10.0
 year=2020
 
 outdir=$ROOTDIR/ERA5
+mkdir -p $outdir
+
 prefix=EU
 
 # Fix the "IDontKnowYou" bug

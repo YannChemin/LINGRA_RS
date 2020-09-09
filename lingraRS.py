@@ -625,6 +625,8 @@ print(output)
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.figure(figsize=(15,7))
+
 plt.subplot(231)
 plt.plot(time, np.divide(yielD[:len(time)],1000),'g-')
 plt.title('Yield accumulated (T/ha)')
@@ -655,6 +657,7 @@ plt.plot(time, np.divide(grass[:len(time)],1000),'r-')
 plt.title('Grass accumulated (T/ha)')
 plt.grid()
 
+plt.tight_layout()
 plt.show()
 
 # data processing

@@ -1,0 +1,2 @@
+Directory RS: Download ERA5 and MODIS data, process MODIS data and store as VRTs (+FV.tifs)
+Directory mkMeteoF: Create the LINGRA input file with a mix of ERA5 and RS data (TODO Add real cut data from ESA SNAP)

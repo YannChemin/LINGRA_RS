@@ -1,24 +1,32 @@
 #!/bin/bash
 
 #Specify location of the data drive
-ROOTDIR=/media/yann/KINGSTON/
+#ROOTDIR=/media/yann/KINGSTON/
+ROOTDIR=/Users/dnd/Documents/
 
 ##############################################
 # ERA5 DATA Download                         #
 #This code requires local downERA5.py to run #
 ##############################################
 
-#EU 2019
+# EU
 north=60.0
 south=35.0
 east=30.0
 west=-10.0
-
-year=2019
+# Year of Interest
+year=2020
 
 outdir=$ROOTDIR/ERA5
 prefix=EU
 
+# Fix the "IDontKnowYou" bug
+echo "
+url: https://cds.climate.copernicus.eu/api/v2
+key: 46111:c87052f5-b0c1-4560-b17a-b216348961fe
+" > $HOME/.cdsapirc
+
+# Download ERA5 Data for EU
 ./downERA5.py $north $south $east $west $year $outdir $prefix
 
 ####################################

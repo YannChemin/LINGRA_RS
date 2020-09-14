@@ -44,7 +44,7 @@ Header = """
 """
 
 parser = argparse.ArgumentParser()
-parser.add_argument("grassland", help="name of Copernicus Grassland file to access")
+parser.add_argument("grassland", help="name of Copernicus Grassland file to access (INT32!)")
 parser.add_argument("netcdf", help="name of NETCDF ERA5 file to access")
 parser.add_argument("RSdir", help="name of RS LAI/ET/etc directory")
 if len(sys.argv) < 4:
@@ -78,18 +78,22 @@ pixelHeight = int(-transform[5])
 data = band.ReadAsArray(0, 0, cols, rows)
 
 # Create output files
+# Set no_data value
+no_data = 7777777
 # Set pyramid building option to Erdas
 gdal.SetConfigOption('HFA_USE_RRD', 'YES')
+# Creation options
+opts = ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS']
 # Build output files
 # tiller, yielD, wlvg, wlvd1, parcu, grass, tracu, evacu
-out0 = driver.CreateCopy("0_tiller.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
-out1 = driver.CreateCopy("1_yield.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
-out2 = driver.CreateCopy("2_wlvg.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
-out3 = driver.CreateCopy("3_wlvd1.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
-out4 = driver.CreateCopy("4_parcu.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
-out5 = driver.CreateCopy("5_grass.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
-out6 = driver.CreateCopy("6_tracu.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
-out7 = driver.CreateCopy("7_evacu.tif", dataset, 0, ['TILED=YES', 'COMPRESS=DEFLATE', 'NUM_THREADS=ALL_CPUS'])
+out0 = driver.CreateCopy("0_tiller.tif", dataset, 0, opts)
+out1 = driver.CreateCopy("1_yield.tif", dataset, 0, opts)
+out2 = driver.CreateCopy("2_wlvg.tif", dataset, 0, opts)
+out3 = driver.CreateCopy("3_wlvd1.tif", dataset, 0, opts)
+out4 = driver.CreateCopy("4_parcu.tif", dataset, 0, opts)
+out5 = driver.CreateCopy("5_grass.tif", dataset, 0, opts)
+out6 = driver.CreateCopy("6_tracu.tif", dataset, 0, opts)
+out7 = driver.CreateCopy("7_evacu.tif", dataset, 0, opts)
 # Access band handles for output files
 b0 = out0.GetRasterBand(1)
 b1 = out1.GetRasterBand(1)
@@ -99,6 +103,15 @@ b4 = out4.GetRasterBand(1)
 b5 = out5.GetRasterBand(1)
 b6 = out6.GetRasterBand(1)
 b7 = out7.GetRasterBand(1)
+# Set no_data value
+b0.SetNoDataValue(no_data)
+b1.SetNoDataValue(no_data)
+b2.SetNoDataValue(no_data)
+b3.SetNoDataValue(no_data)
+b4.SetNoDataValue(no_data)
+b5.SetNoDataValue(no_data)
+b6.SetNoDataValue(no_data)
+b7.SetNoDataValue(no_data)
 # Access data from band handles as numpy arrays
 d0 = b0.ReadAsArray(0, 0, cols, rows)
 d1 = b1.ReadAsArray(0, 0, cols, rows)
@@ -109,14 +122,14 @@ d5 = b5.ReadAsArray(0, 0, cols, rows)
 d6 = b6.ReadAsArray(0, 0, cols, rows)
 d7 = b7.ReadAsArray(0, 0, cols, rows)
 # Fill with nan, so that only grass pixels get to be taken care of.
-d0.fill(np.nan)
-d1.fill(np.nan)
-d2.fill(np.nan)
-d3.fill(np.nan)
-d4.fill(np.nan)
-d5.fill(np.nan)
-d6.fill(np.nan)
-d7.fill(np.nan)
+d0.fill(no_data)
+d1.fill(no_data)
+d2.fill(no_data)
+d3.fill(no_data)
+d4.fill(no_data)
+d5.fill(no_data)
+d6.fill(no_data)
+d7.fill(no_data)
 
 # Start processing the model for each grass pixel
 for col in range(pixelWidth):
@@ -286,25 +299,25 @@ for col in range(pixelWidth):
             # Launch LINGRA_RS and retrieve the yield into a pixel
             plot = False
             (tiller, yielD, wlvg, wlvd1, parcu, grass, tracu, evacu) = lingrars(latitude, meteolist, plot)
-            # Let the pixels fit into each map
-            d0[col][row] = tiller
-            d1[col][row] = yielD
-            d2[col][row] = wlvg
-            d3[col][row] = wlvd1
-            d4[col][row] = parcu
-            d5[col][row] = grass
-            d6[col][row] = tracu
-            d7[col][row] = evacu
+            # Let the pixels fit into each map (*10000 bc INT32 maps)
+            d0[col][row] = tiller * 10000
+            d1[col][row] = yielD * 10000
+            d2[col][row] = wlvg * 10000
+            d3[col][row] = wlvd1 * 10000
+            d4[col][row] = parcu * 10000
+            d5[col][row] = grass * 10000
+            d6[col][row] = tracu * 10000
+            d7[col][row] = evacu * 10000
 
 # Write arrays to files
-out0.GetRasterBand(1).WriteArray(d0)
-out1.GetRasterBand(1).WriteArray(d1)
-out2.GetRasterBand(1).WriteArray(d2)
-out3.GetRasterBand(1).WriteArray(d3)
-out4.GetRasterBand(1).WriteArray(d4)
-out5.GetRasterBand(1).WriteArray(d5)
-out6.GetRasterBand(1).WriteArray(d6)
-out7.GetRasterBand(1).WriteArray(d7)
+b0.WriteArray(d0)
+b1.WriteArray(d1)
+b2.WriteArray(d2)
+b3.WriteArray(d3)
+b4.WriteArray(d4)
+b5.WriteArray(d5)
+b6.WriteArray(d6)
+b7.WriteArray(d7)
 
 # Build overviews for all new files
 out0.BuildOverviews(overviewlist=[2, 4, 8, 16, 32, 64, 128])
@@ -325,6 +338,16 @@ out4.FlushCache()
 out5.FlushCache()
 out6.FlushCache()
 out7.FlushCache()
+
+# Close properly the dataset
+out0 = None
+out1 = None
+out2 = None
+out3 = None
+out4 = None
+out5 = None
+out6 = None
+out7 = None
 
 # Complete the process by signalling the user
 print('\033[32m', "Processing DONE", '\033[0m', sep='')

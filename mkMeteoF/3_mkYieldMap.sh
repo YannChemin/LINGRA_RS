@@ -1,4 +1,6 @@
 #!/bin/bash
+#For gdal tools
+export PATH=$PATH:/Library/Frameworks/GDAL.framework/Versions/3.1/Programs/
 
 ####################
 #parser.add_argument("grassland", help="name of Copernicus Grassland file to access")

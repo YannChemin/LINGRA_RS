@@ -132,12 +132,12 @@ d6.fill(no_data)
 d7.fill(no_data)
 
 # Start processing the model for each grass pixel
-for col in range(pixelWidth):
-    for row in range(pixelHeight):
+for col in range(cols):
+    for row in range(rows):
         if data[col][row] == 1:
             longitude = col * pixelWidth + xOrigin
             latitude = yOrigin - row * pixelHeight
-            print(longitude, latitude, data[row][col])
+            print(longitude, latitude, data[col][row])
             # Set the basic array generation loop
             layers = ['ssrd', 'u10', 'v10', 't2m', 'sp', 'tp', 'd2m']
             for lay in range(len(layers)):
@@ -177,7 +177,7 @@ for col in range(pixelWidth):
 
             # Before daily conversion, remove night values for some
             # Replace nodata with NAN
-            [np.nan if x == 0.0000 in x else x for x in ssrd]
+            [np.nan if x == 0.0000 else x for x in ssrd]
 
             # Convert from hour to day
             import xarray as xr

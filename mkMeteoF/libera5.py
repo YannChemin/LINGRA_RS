@@ -83,76 +83,75 @@ def getPixelVals(netcdfFile, layer, longitude, latitude):
     """
     Function to query pixels values for a given layer at a given Lat/long
     """
-    #Construct the Layer name for GDAL
+    # Construct the Layer name for GDAL
     lyr = "NETCDF:"+netcdfFile+":"+layer
-    #print(lyr)
+    # print(lyr)
 
-    #Parse GDALINFO for the needed
-    #Define UR + Resolution
-    URx=os.popen('gdalinfo %s | grep Origin | sed "s/\(.*\)(\(.*\),\(.*\))/\\2/"' % (lyr)).read()
-    URy=os.popen('gdalinfo %s | grep Origin | sed "s/\(.*\)(\(.*\),\(.*\))/\\3/"' % (lyr)).read()
-    #print(URx,URy)
-    Rsx=os.popen('gdalinfo %s | grep Pixel\ Size | sed "s/\(.*\)(\(.*\),\(.*\))/\\2/"' % (lyr)).read()
-    Rsy=os.popen('gdalinfo %s | grep Pixel\ Size | sed "s/\(.*\)(\(.*\),-\(.*\))/\\3/"' % (lyr)).read()
-    #print(Rsx,Rsy)
-    #Extract the offset and scale from netcdf file
-    offset=os.popen('gdalinfo %s | grep Offset | tail -n1 | sed "s/\(.*\):\ \(.*\),\(.*\):\(.*\)/\\2/"' % (lyr)).read()
-    scale=os.popen('gdalinfo %s | grep Offset | tail -n1 | sed "s/\(.*\):\ \(.*\),\(.*\):\(.*\)/\\4/"' % (lyr)).read()
-    #print(offset,scale)
-    #Extract NoData Value from layer
-    nodata=os.popen('gdalinfo %s | grep NoData\ Value | tail -n1 | sed "s/\ \ NoData\ Value=//"' % (lyr)).read()
-
-    #Get row and column numbers (Not needed at this point)
-    #nX=os.popen('gdalinfo %s | grep Size\ is\ | sed "s/Size\ is\ \(.*\),\(.*\)/\\1/"' % (lyr)).read()
-    #nY=os.popen('gdalinfo %s | grep Size\ is\ | sed "s/Size\ is\ \(.*\),\(.*\)/\\2/"' % (lyr)).read()
-    #print(nX,nY)
+    # Parse GDALINFO for the needed
+    # Define UR + Resolution
+    URx = os.popen('gdalinfo %s | grep Origin | sed "s/\(.*\)(\(.*\),\(.*\))/\\2/"' % (lyr)).read()
+    URy = os.popen('gdalinfo %s | grep Origin | sed "s/\(.*\)(\(.*\),\(.*\))/\\3/"' % (lyr)).read()
+    # print(URx,URy)
+    Rsx = os.popen('gdalinfo %s | grep Pixel\ Size | sed "s/\(.*\)(\(.*\),\(.*\))/\\2/"' % (lyr)).read()
+    Rsy = os.popen('gdalinfo %s | grep Pixel\ Size | sed "s/\(.*\)(\(.*\),-\(.*\))/\\3/"' % (lyr)).read()
+    # print(Rsx,Rsy)
+    # Extract the offset and scale from netcdf file
+    offset = os.popen('gdalinfo %s | grep Offset | tail -n1 | sed "s/\(.*\):\ \(.*\),\(.*\):\(.*\)/\\2/"' % (lyr)).read()
+    scale = os.popen('gdalinfo %s | grep Offset | tail -n1 | sed "s/\(.*\):\ \(.*\),\(.*\):\(.*\)/\\4/"' % (lyr)).read()
+    # print(offset,scale)
+    # Extract NoData Value from layer
+    nodata = os.popen('gdalinfo %s | grep NoData\ Value | tail -n1 | sed "s/\ \ NoData\ Value=//"' % (lyr)).read()
+    # Get row and column numbers (Not needed at this point)
+    # nX = os.popen('gdalinfo %s | grep Size\ is\ | sed "s/Size\ is\ \(.*\),\(.*\)/\\1/"' % (lyr)).read()
+    # nY = os.popen('gdalinfo %s | grep Size\ is\ | sed "s/Size\ is\ \(.*\),\(.*\)/\\2/"' % (lyr)).read()
+    # print(nX,nY)
     
-    #Clean vars
-    URx=float(URx.strip())
-    URy=float(URy.strip())
-    Rsx=float(Rsx.strip())
-    Rsy=float(Rsy.strip())
-    offset=float(offset.strip())
-    scale=float(scale.strip())
-    #print(offset,scale)
-    nodata=int(nodata.strip())
+    # Clean vars
+    URx = float(URx.strip())
+    URy = float(URy.strip())
+    Rsx = float(Rsx.strip())
+    Rsy = float(Rsy.strip())
+    offset = float(offset.strip())
+    scale = float(scale.strip())
+    # print(offset,scale)
+    nodata = int(nodata.strip())
 
-    #Convert from Lat/Long to X/Y
-    lon=float(longitude)
-    lat=float(latitude)
-    #lon=URx+X*Rsx
-    X=int((lon-URx)/Rsx)
+    # Convert from Lat/Long to X/Y
+    lon = float(longitude)
+    lat = float(latitude)
+    # lon=URx+X*Rsx
+    X = int((lon-URx)/Rsx)
     #lat=URy-Y*Rsy
-    Y=int((URy-lat)/Rsy)
-    #print(X,Y)
+    Y = int((URy-lat)/Rsy)
+    # print(X,Y)
 
-    #Create GDALLOCATION X Y Var
+    # Create GDALLOCATION X Y Var
     loc = str(X)+" "+str(Y)
 
-    #Query the temporal values at pixel location in image column and row
+    # Query the temporal values at pixel location in image column and row
     result = os.popen('gdallocationinfo -valonly %s %s' % (lyr, loc)).read()
-    #NETCDF driver does not read in projected lon lat (Not needed)
-    #result = os.popen('gdallocationinfo -valonly -wgs84 %s %s' % (lyr, loc)).read()
+    # NETCDF driver does not read in projected lon lat (Not needed)
+    # result = os.popen('gdallocationinfo -valonly -wgs84 %s %s' % (lyr, loc)).read()
 
-    #cleanup the \n everywhere and remove empty elements
-    result1=list(result.split("\n"))
+    # cleanup the \n everywhere and remove empty elements
+    result1 = list(result.split("\n"))
     while '' in result1:
         result1.remove('')
 
-    #Create and fill a Numpy array
-    array=np.zeros(len(result1))
-    for i in range (len(result1)):
+    # Create and fill a Numpy array
+    array = np.zeros(len(result1))
+    for i in range(len(result1)):
         try:
-            array[i]=float(result1[i])
+            array[i] = float(result1[i])
         except:
             print("###%s###" % (result1[i]))
 
-    #Replace nodata with NAN
-    [np.nan if x==nodata in x else x for x in array]
-    #Rescale the data
-    array=offset+array*scale
-    #Return the array
-    return(array)
+    # Replace nodata with NAN
+    [np.nan if x == nodata else x for x in array]
+    # Rescale the data
+    array = offset+array*scale
+    # Return the array
+    return array
 
 def plotLayer(layer, time_convert, array):
     """

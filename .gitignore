@@ -1,10 +1,4 @@
 
 *.pyc
-/mkMeteoF/0_tiller.tif
-/mkMeteoF/1_yield.tif
-/mkMeteoF/2_wlvg.tif
-/mkMeteoF/3_wlvd1.tif
-/mkMeteoF/4_parcu.tif
-/mkMeteoF/5_grass.tif
-/mkMeteoF/6_tracu.tif
-/mkMeteoF/7_evacu.tif
+/mkMeteoF/*.tif
+/mkMeteoF/*.aux.xml

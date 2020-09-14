@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import argparse
 import datetime
 import sys
@@ -6,8 +6,8 @@ import sys
 import numpy as np
 
 # Import local libraries
-from . import libera5
-from . import libgetgeo
+import libera5
+import libgetgeo
 from osgeo import gdal
 
 # import main lingraRS library
@@ -45,9 +45,9 @@ Header = """
 
 parser = argparse.ArgumentParser()
 parser.add_argument("grassland", help="name of Copernicus Grassland file to access")
-parser.add_argument("netcdf", help="name of NETCDF file to access")
+parser.add_argument("netcdf", help="name of NETCDF ERA5 file to access")
 parser.add_argument("RSdir", help="name of RS LAI/ET/etc directory")
-if len(sys.argv) == 1:
+if len(sys.argv) < 4:
     parser.print_help(sys.stderr)
     print(Requirements)
     print(Header)
@@ -72,8 +72,8 @@ transform = dataset.GetGeoTransform()
 
 xOrigin = transform[0]
 yOrigin = transform[3]
-pixelWidth = transform[1]
-pixelHeight = -transform[5]
+pixelWidth = int(transform[1])
+pixelHeight = int(-transform[5])
 
 data = band.ReadAsArray(0, 0, cols, rows)
 
@@ -119,8 +119,8 @@ d6.fill(np.nan)
 d7.fill(np.nan)
 
 # Start processing the model for each grass pixel
-for col in pixelWidth:
-    for row in pixelHeight:
+for col in range(pixelWidth):
+    for row in range(pixelHeight):
         if data[col][row] == 1:
             longitude = col * pixelWidth + xOrigin
             latitude = yOrigin - row * pixelHeight

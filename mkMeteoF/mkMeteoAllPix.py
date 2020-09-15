@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 import argparse
-import datetime
 import sys
-
-import numpy as np
-
+from osgeo import gdal
 # Import local libraries
 import libera5
-import libgetgeo
-from osgeo import gdal
-
+from libmkMeteo import mkmeteo4lingrars
 # import main lingraRS library
 from liblingraRS import lingrars
 
@@ -139,6 +134,7 @@ for col in range(cols):
             longitude = col * pixelWidth + xOrigin
             latitude = yOrigin - row * pixelHeight
             print(longitude, latitude, data[col][row])
+            exit()
             # Do not plot the model run output
             plot = False
             # Create the Meteo and RS data parameterisation for lingraRS

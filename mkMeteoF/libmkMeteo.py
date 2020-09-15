@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-import datetime
-import numpy as np
-import xarray as xr
-# Import local libraries
-import libera5
-import libgetgeo
-
 
 def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     """
@@ -33,6 +26,13 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     12      RS cut event                  (0/1)
     --------------------------------------------------------
     """
+    import datetime
+    import numpy as np
+    import xarray as xr
+    # Import local libraries
+    import libera5
+    import libgetgeo
+
     # Extract time array in python datetime
     time_convert = libera5.getTimeNetcdf(netcdf)
 

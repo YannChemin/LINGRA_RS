@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+import argparse
+import datetime
+import sys
+import numpy as np
+import xarray as xr
+# Import local libraries
+import libera5
+import libgetgeo
 
 Requirements = """
 *---------------------------------------------------------------------------*
@@ -30,55 +38,45 @@ Header = """
 *---------------------------------------------------------------------------*
 """
 
-import argparse
-import datetime
-import os
-import sys
-
-# Import local libraries
-import libera5
-import libgetgeo
-import numpy as np
-
 parser = argparse.ArgumentParser()
 parser.add_argument("netcdf", help="name of NETCDF file to access")
 parser.add_argument("RSdir", help="name of RS LAI/ET/etc directory")
 parser.add_argument("longitude", help="Longitude")
 parser.add_argument("latitude", help="Latitude")
 parser.add_argument("output", help="name of output Meteo txt file")
-if len(sys.argv)==1:
+if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     print(Requirements)
     print(Header)
     sys.exit(1)
 args = parser.parse_args()
 
-#Extract time array in python datetime
-time_convert=libera5.getTimeNetcdf(args.netcdf)
+# Extract time array in python datetime
+time_convert = libera5.getTimeNetcdf(args.netcdf)
 
-#Set the basic array generation loop
-layers=['ssrd','u10','v10','t2m','sp','tp','d2m']
-for l in range(len(layers)):
-    array = libera5.getPixelVals(args.netcdf, layers[l], args.longitude, args.latitude)
-    if layers[l] == 'ssrd':
+# Set the basic array generation loop
+layers = ['ssrd', 'u10', 'v10', 't2m', 'sp', 'tp', 'd2m']
+for ll in range(len(layers)):
+    array = libera5.getPixelVals(args.netcdf, layers[ll], args.longitude, args.latitude)
+    if layers[ll] == 'ssrd':
         ssrd = np.copy(array)
-    elif layers[l] == 'u10':
+    elif layers[ll] == 'u10':
         u10 = np.copy(array)
-    elif layers[l] == 'v10':
+    elif layers[ll] == 'v10':
         v10 = np.copy(array)
-    elif layers[l] == 't2m':
+    elif layers[ll] == 't2m':
         t2m = np.copy(array)
-    elif layers[l] == 'sp':
+    elif layers[ll] == 'sp':
         sp = np.copy(array)
-    elif layers[l] == 'tp':
+    elif layers[ll] == 'tp':
         tp = np.copy(array)
-    elif layers[l] == 'd2m':
+    elif layers[ll] == 'd2m':
         d2m = np.copy(array)
     else:
         print("name of this dataset is unknown")
 
 # Make Wind speed (u10 x v10 components)
-windspeed = np.abs(np.multiply(u10,v10))
+windspeed = np.abs(np.multiply(u10, v10))
 # Solar Radiation J.m-2 -> kJ.m-2
 ssrd = np.divide(ssrd, 1000)
 for t in range(ssrd.shape[0]):
@@ -96,15 +94,14 @@ d2m = np.subtract(d2m, 273.15)
 
 # Before daily conversion, remove night values for some
 # Replace nodata with NAN
-ssrd_agg=np.zeros_like(time_convert, dtype=np.float)
+ssrd_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, ssrd.shape[0], 2):
-    ssrd_agg[int(np.floor(i/2))] = (ssrd[i]+ssrd[i+1])*0.5
+    ssrd_agg[int(np.floor(i / 2))] = (ssrd[i] + ssrd[i + 1]) * 0.5
 
 ssrd_agg[ssrd_agg == 0.0000] = np.nan
 # [np.nan if x == 0.0000 else x for x in ssrd_agg]
 
 # Convert from hour to day
-import xarray as xr
 dsas = xr.Dataset(
     {
         "ssrd": ("time", ssrd_agg),
@@ -118,7 +115,7 @@ dsasD = dsas.resample(time='1D').reduce(np.nansum)
 
 wspd_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, windspeed.shape[0], 2):
-    wspd_agg[int(np.floor(i/2))] = (windspeed[i]+windspeed[i+1])*0.5
+    wspd_agg[int(np.floor(i / 2))] = (windspeed[i] + windspeed[i + 1]) * 0.5
 
 dsa = xr.Dataset(
     {
@@ -131,7 +128,7 @@ dsaD = dsa.resample(time='1D').mean()
 # Precipitation summed by day
 pmm_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, tp.shape[0], 2):
-    pmm_agg[int(np.floor(i/2))] = (tp[i]+tp[i+1])*0.5
+    pmm_agg[int(np.floor(i / 2))] = (tp[i] + tp[i + 1]) * 0.5
 
 dsap = xr.Dataset(
     {
@@ -144,7 +141,7 @@ dsapD = dsap.resample(time='1D').sum()
 # Minimum temperature per day
 t2m_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, t2m.shape[0], 2):
-    t2m_agg[int(np.floor(i/2))] = (t2m[i]+t2m[i+1])*0.5
+    t2m_agg[int(np.floor(i / 2))] = (t2m[i] + t2m[i + 1]) * 0.5
 
 dstmin = xr.Dataset(
     {
@@ -166,7 +163,7 @@ dstmaxD = dstmax.resample(time='1D').max()
 # Minimum dew point temperature per day
 d2m_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, d2m.shape[0], 2):
-    d2m_agg[int(np.floor(i/2))] = (d2m[i]+d2m[i+1])*0.5
+    d2m_agg[int(np.floor(i / 2))] = (d2m[i] + d2m[i + 1]) * 0.5
 
 dsdmin = xr.Dataset(
     {
@@ -192,7 +189,7 @@ for t in range(len(doyt)):
 
 # Join all data
 meteolist = [year.tolist(), doy, np.array(dsasD.ssrd).tolist(), np.array(dstminD.tmin).tolist(),
-         np.array(dstmaxD.tmax).tolist(), eact, np.array(dsaD.wspd).tolist(), np.array(dsapD.prmm).tolist()]
+             np.array(dstmaxD.tmax).tolist(), eact, np.array(dsaD.wspd).tolist(), np.array(dsapD.prmm).tolist()]
 # INSERT RS DATA HERE
 ####################
 # Create E & T from RS
@@ -214,7 +211,7 @@ MYDET = np.divide(MYDET, 10)
 # print("START MODET", MODET, "END MODET")
 # print("START MYDET", MYDET, "END MYDET")
 # Compute average ETa. Take NANs into account to maximise data count out
-ET = (MODET+MYDET)/2.0
+ET = (MODET + MYDET) / 2.0
 # print("START ET", ET, "END ET")
 # Transpiration
 T = np.multiply(ET, FC)
@@ -249,4 +246,3 @@ with open(args.output, 'w') as f:
     for item in meteolist:
         f.write(str(item))
         f.write("\n")
-

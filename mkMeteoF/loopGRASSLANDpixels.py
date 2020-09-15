@@ -39,7 +39,7 @@ data = band.ReadAsArray(0, 0, cols, rows)
 
 for col in pixelWidth:
     for row in pixelHeight:
-        if(data[col][row]==1):
+        if data[col][row]==1:
             longitude=col*pixelWidth+xOrigin
             latitude=yOrigin-row*pixelHeight
             print(longitude, latitude, data[row][col])

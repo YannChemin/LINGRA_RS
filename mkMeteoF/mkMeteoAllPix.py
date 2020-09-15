@@ -71,7 +71,6 @@ pixelWidth = int(transform[1])
 pixelHeight = int(-transform[5])
 
 data = band.ReadAsArray(0, 0, cols, rows)
-
 # Create output files
 # Set no_data value
 no_data = 7777777
@@ -133,8 +132,7 @@ for col in range(cols):
             # TODO Ensure only grassland pixels get selected!
             longitude = col * pixelWidth + xOrigin
             latitude = yOrigin - row * pixelHeight
-            print(longitude, latitude, data[col][row])
-            exit()
+            print(col, row, longitude, latitude, data[col][row])
             # Do not plot the model run output
             plot = False
             # Create the Meteo and RS data parameterisation for lingraRS

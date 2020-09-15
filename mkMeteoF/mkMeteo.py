@@ -37,6 +37,7 @@ import sys
 
 # Import local libraries
 import libera5
+import libgetgeo
 import numpy as np
 
 parser = argparse.ArgumentParser()
@@ -93,17 +94,14 @@ tp = np.abs(np.multiply(tp, 1000))
 # Temperature K -> C
 d2m = np.subtract(d2m, 273.15)
 
-print("Here 1")
-
 # Before daily conversion, remove night values for some
 # Replace nodata with NAN
-ssrd_agg=np.zeros_like(time_convert)
+ssrd_agg=np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, ssrd.shape[0], 2):
-    try:
-        ssrd_agg[np.floor(i/2)] = np.sum(ssrd[i], ssrd[i+1])
-    except:
-        pass
-[np.nan if x == 0.0000 else x for x in ssrd_agg]
+    ssrd_agg[int(np.floor(i/2))] = (ssrd[i]+ssrd[i+1])*0.5
+
+ssrd_agg[ssrd_agg == 0.0000] = np.nan
+# [np.nan if x == 0.0000 else x for x in ssrd_agg]
 
 # Convert from hour to day
 import xarray as xr
@@ -118,36 +116,22 @@ dsas = xr.Dataset(
 # Make mean on non NAN values
 dsasD = dsas.resample(time='1D').reduce(np.nansum)
 
-wspd_agg = np.zeros_like(time_convert)
+wspd_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, windspeed.shape[0], 2):
-    try:
-        wspd_agg[np.floor(i/2)] = np.sum(windspeed[i], windspeed[i+1])
-    except:
-        pass
-
-srfp_agg = np.zeros_like(time_convert)
-for i in range(0, sp.shape[0], 2):
-    try:
-        srfp_agg[np.floor(i/2)] = np.sum(sp[i], sp[i+1])
-    except:
-        pass
+    wspd_agg[int(np.floor(i/2))] = (windspeed[i]+windspeed[i+1])*0.5
 
 dsa = xr.Dataset(
     {
         "wspd": ("time", wspd_agg),
-        "srfp": ("time", srfp_agg),
     },
     {"time": time_convert},
 )
 dsaD = dsa.resample(time='1D').mean()
 
 # Precipitation summed by day
-pmm_agg = np.zeros_like(time_convert)
+pmm_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, tp.shape[0], 2):
-    try:
-        pmm_agg[np.floor(i/2)] = np.sum(tp[i], tp[i+1])
-    except:
-        pass
+    pmm_agg[int(np.floor(i/2))] = (tp[i]+tp[i+1])*0.5
 
 dsap = xr.Dataset(
     {
@@ -158,12 +142,9 @@ dsap = xr.Dataset(
 dsapD = dsap.resample(time='1D').sum()
 
 # Minimum temperature per day
-t2m_agg = np.zeros_like(time_convert)
+t2m_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, t2m.shape[0], 2):
-    try:
-        t2m_agg[np.floor(i/2)] = np.sum(t2m[i], t2m[i+1])
-    except:
-        pass
+    t2m_agg[int(np.floor(i/2))] = (t2m[i]+t2m[i+1])*0.5
 
 dstmin = xr.Dataset(
     {
@@ -183,12 +164,9 @@ dstmax = xr.Dataset(
 dstmaxD = dstmax.resample(time='1D').max()
 
 # Minimum dew point temperature per day
-d2m_agg = np.zeros_like(time_convert)
+d2m_agg = np.zeros_like(time_convert, dtype=np.float)
 for i in range(0, d2m.shape[0], 2):
-    try:
-        d2m_agg[np.floor(i/2)] = np.sum(d2m[i], d2m[i+1])
-    except:
-        pass
+    d2m_agg[int(np.floor(i/2))] = (d2m[i]+d2m[i+1])*0.5
 
 dsdmin = xr.Dataset(
     {
@@ -205,75 +183,70 @@ for d in range(len(eactt)):
     eact.append(libera5.d2m2eact(eactt[d]))
 
 # Generate year value for every day
-year = np.datetime_as_string(dsaD.time,unit='Y')
+year = np.datetime_as_string(dsaD.time, unit='Y')
 # Generate DOY value for every day
-doyt = np.datetime_as_string(dsaD.time,unit='D')
+doyt = np.datetime_as_string(dsaD.time, unit='D')
 doy = []
 for t in range(len(doyt)):
-    doy.append(datetime.datetime.strptime(doyt[t],'%Y-%m-%d').timetuple().tm_yday)
+    doy.append(datetime.datetime.strptime(doyt[t], '%Y-%m-%d').timetuple().tm_yday)
 
 # Join all data
-listA = []
-listA.append(year.tolist())
-listA.append(doy)
-listA.append(np.array(dsasD.ssrd).tolist())
-listA.append(np.array(dstminD.tmin).tolist())
-listA.append(np.array(dstmaxD.tmax).tolist())
-listA.append(eact)
-listA.append(np.array(dsaD.wspd).tolist())
-listA.append(np.array(dsapD.prmm).tolist())
-# listA.append(np.array(dsaD.srfp).tolist())
+meteolist = [year.tolist(), doy, np.array(dsasD.ssrd).tolist(), np.array(dstminD.tmin).tolist(),
+         np.array(dstmaxD.tmax).tolist(), eact, np.array(dsaD.wspd).tolist(), np.array(dsapD.prmm).tolist()]
 # INSERT RS DATA HERE
 ####################
 # Create E & T from RS
-# Get the FV files in array
-FV = getgeoydoy(args.RSdir, "MOD13Q1*_FV.tif", args.longitude, args.latitude, year.tolist(), doy, i=True)
-print("START FV", FV, "END FV")
+# Get the FC files in numpy array converted to [0.0-1.0]
+FC = libgetgeo.getgeoydoy(args.RSdir, "MOD13Q1*_FC.tif", args.longitude, args.latitude, year.tolist(), doy, i=True)
+FC = np.asarray(FC, dtype=np.float)
+FC = np.divide(FC, 100)
+# print("START FC", FC, "END FC")
 # Get ETa from both MOD and MYD platforms in arrays
-MODET = getgeoydoy(args.RSdir, "MOD16A*.vrt", args.longitude, args.latitude, year.tolist(), doy)
-MYDET = getgeoydoy(args.RSdir, "MYD16A*.vrt", args.longitude, args.latitude, year.tolist(), doy)
-print("START MODET", MODET, "END MODET")
-print("START MYDET", MYDET, "END MYDET")
+MODET = libgetgeo.getgeoydoy(args.RSdir, "MOD16A*.vrt", args.longitude, args.latitude, year.tolist(), doy)
+MYDET = libgetgeo.getgeoydoy(args.RSdir, "MYD16A*.vrt", args.longitude, args.latitude, year.tolist(), doy)
+# TODO make 32765 -> NAN in MODET/MYDET
+MODET = np.asarray(MODET, dtype=np.float)
+MYDET = np.asarray(MYDET, dtype=np.float)
+MODET[MODET == 32765] = np.nan
+MYDET[MYDET == 32765] = np.nan
+MODET = np.divide(MODET, 10)
+MYDET = np.divide(MYDET, 10)
+# print("START MODET", MODET, "END MODET")
+# print("START MYDET", MYDET, "END MYDET")
 # Compute average ETa. Take NANs into account to maximise data count out
-ET = np.nanmean(MODET, MYDET)
-print("START ET", ET, "END ET")
+ET = (MODET+MYDET)/2.0
+# print("START ET", ET, "END ET")
 # Transpiration
-T = np.multiply(ET, FV)
-print("START T", T, "END T")
+T = np.multiply(ET, FC)
+# print("START T", T, "END T")
 # Evaporation is the complementary of Transpiration vis-a-vis ET
-E = np.subtract(ET,T)
-print("START E", E, "END E")
+E = np.subtract(ET, T)
+# print("START E", E, "END E")
 # TODO check the output format of the arrays to be compatible to the csv format
 # Add Evaporation data to the Meteo file
-listA.append(E)
+meteolist.append(E.tolist())
 # Add Transpiration data to the Meteo file
-listA.append(T)
+meteolist.append(T.tolist())
 # Add LAI data to the Meteo file
-LAI = getgeoydoy(args.RSdir, "MCD15A2H*.vrt", args.longitude, args.latitude, year.tolist(), doy)
-print("START LAI", LAI, "END LAI")
-listA.append(getgeoydoy(args.RSdir, "MCD15A2H*.vrt", args.longitude, args.latitude, year.tolist(), doy))
+LAI = libgetgeo.getgeoydoy(args.RSdir, "MCD15A2H*.vrt", args.longitude, args.latitude, year.tolist(), doy)
+LAI = np.array(LAI, dtype=np.float)
+LAI = np.divide(LAI, 10)
+# print("START LAI", LAI, "END LAI")
+meteolist.append(LAI.tolist())
 # Create artificial Cut data from a previous array
-Cut = np.zeros(np.array(dsapD.prmm))
+CutNans = np.zeros(LAI.shape[0])
 # Fill with NANs
-CutNans = [np.nan if x == 0 else x in Cut]
+CutNans.fill(np.nan)
 # Fill with 2 cuts
 CutNans[127] = 1
 CutNans[235] = 1
 # Add Cut data to the Meteo file
-listA.append(CutNans)
-print("START LAI", LAI, "END LAI")
+meteolist.append(CutNans.tolist())
+# print("START CUTNANS", CutNans, "END CUTNANS")
 
 #################################
 with open(args.output, 'w') as f:
-    for item in listA:
-        f.write("{item,\n}")
+    for item in meteolist:
+        f.write(str(item))
+        f.write("\n")
 
-########################################################
-# Housekeeping for csv format
-os.system('sed -i "s/\'//g" %s' % (args.output))
-os.system('sed -i "s/,\\ /\t/g" %s' % (args.output))
-os.system('sed -i "s/\[//g" %s' % (args.output))
-os.system('sed -i "s/\]//g" %s' % (args.output))
-os.system('datamash transpose < %s > t%s' % (args.output, args.output))
-os.system('paste t%s rs.csv > %s' % (args.output, args.output))
-#########################################################

@@ -135,6 +135,7 @@ d7.fill(no_data)
 for col in range(cols):
     for row in range(rows):
         if data[col][row] == 1:
+            # TODO Ensure only grassland pixels get selected!
             longitude = col * pixelWidth + xOrigin
             latitude = yOrigin - row * pixelHeight
             print(longitude, latitude, data[col][row])

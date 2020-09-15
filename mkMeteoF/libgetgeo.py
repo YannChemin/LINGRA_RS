@@ -8,11 +8,17 @@ def getgeo(fname, longitude, latitude):
 
 
 def getdoy(fname):
-    return fname[-7:-4]
+    if fname[-7:-4] == "_FC":
+        return fname[-10:-7]
+    else:
+        return fname[-7:-4]
 
 
 def getyear(fname):
-    return fname[-11:-7]
+    if fname[-7:-4] == "_FC":
+        return fname[-14:-10]
+    else:
+        return fname[-11:-7]
 
 
 def getgeoWLDCRD(VRTdir, wildcard, longitude, latitude):
@@ -50,24 +56,26 @@ def getgeoydoy(VRTdir, wildcard, longitude, latitude, listyear, listdoy, **kwarg
         doy = getdoy(path)
         RSyear.append(year)
         RSdoy.append(doy)
-        value.append(year, doy, getgeo(path, longitude, latitude))
+        value.append(getgeo(path, longitude, latitude).split('\n')[0])
 
-    result = []
+    resarr = np.zeros((len(listdoy),), dtype=np.float)
+    resarr.fill(np.nan)
     # Fill list with nan for the len(listdoy)
     for d in range(len(listdoy)):
         for l in range(len(RSdoy)):
-            if listyear[d] == RSyear[l]:
-                if listdoy[d] == RSdoy[l]:
-                    result.append(value[l])
-            else:
-                result.append('nan')
+            if int(listyear[d]) == int(RSyear[l]):
+                if int(listdoy[d]) == int(RSdoy[l]):
+                    resarr[d] = value[l]
 
     # If Kwargs 'i' is set to True (i=True), interpolate the content
-    if interpolate is True:
-        resarr = np.array(result, dtype=np.float)
-        # interpolate nans to values
-        nans, x = nan_helper(resarr)
-        resarr[nans] = np.interp(x(nans), x(~nans), resarr[~nans])
-        result = resarr.tolist()
+    try:
+        if interpolate is True:
+            # interpolate nans to values
+            nans, x = nan_helper(resarr)
+            resarr[nans] = np.interp(x(nans), x(~nans), resarr[~nans])
+    except:
+        pass
 
+    # print(result)
+    result = resarr.tolist()
     return result

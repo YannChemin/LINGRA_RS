@@ -1,25 +1,18 @@
-# * version adapted for rye grass april 4, 2006, joost wolf for
-# * fst modelling;
-# * model is based on lingra model in cgms
-# * for forage growth and production simulation which was written fortran
-# * (grsim.pfo) and later in c; application of model is the
-# * simulation of perennial ryegrass (l. perenne) growth under both
-# * potential and water-limited growth conditions.
-# *
-# * model is different from lingra model in cgms with respect to:
-# *  1) evaporation, transpiration, water balance, root depth growth
-# *  and growth reduction by drought stress (tranrf) are derived from lingra
-# *  model for thimothee (e.g. subroutine penman, evaptr and drunir)
-# *  2) running average to calculate soil temperature (soitmp) is derived from
-# *  approach in lingra model for thimothee
-# *
-# *
-# *     name    type     description                               unit
-# * variables:
-# *     biomass in leaves, reserves, etc. in kg dm / ha
-# *     terms of water balance in mm/day
-# *
-
+# version adapted for rye grass april 4, 2006, joost wolf for fst modelling;
+# model is based on lingra model in cgms
+# for forage growth and production simulation which was written fortran
+# (grsim.pfo) and later in c; application of model is the
+# simulation of perennial ryegrass (l. perenne) growth under both
+# potential and water-limited growth conditions.
+# model is different from lingra model in cgms with respect to:
+#  1) evaporation, transpiration, water balance, root depth growth
+#  and growth reduction by drought stress (tranrf) are derived from lingra
+#  model for thimothee (e.g. subroutine penman, evaptr and drunir)
+#  2) running average to calculate soil temperature (soitmp) is derived from
+#  approach in lingra model for thimothee
+#  variables:
+#     biomass in leaves, reserves, etc. in kg dm / ha
+#     terms of water balance in mm/day
 
 def lingrars(latitude, meteolist, plot):
     """
@@ -43,7 +36,7 @@ def lingrars(latitude, meteolist, plot):
     RStrn = meteolist[9]  # daily RS Transpiration actual (mm day-1)
     RSlai = meteolist[10]  # daily RS LAI (-)
     RScut = meteolist[11]  # daily RS cutting event (0/1)
-    #print(year[0], doy[0], rdd[0], tmmn[0], tmmx[0], vp[0], wn[0], rain[0], RSevp[0], RStrn[0], RSlai[0], RScut[0])
+    # print(year[0], doy[0], rdd[0], tmmn[0], tmmx[0], vp[0], wn[0], rain[0], RSevp[0], RStrn[0], RSlai[0], RScut[0])
 
     # number of days in simulation (days)
     fintim = len(year)
@@ -55,10 +48,7 @@ def lingrars(latitude, meteolist, plot):
     wrei = 200.
     wrti = 4.
 
-    # ************************************************************************
-    # ***   functions and parameters for grass
-    # ************************************************************************
-
+    # functions and parameters for grass
     # parameters
     co2a = 360.  # atmospheric co2 concentration (ppm)
     kdif = 0.60  #
@@ -99,9 +89,7 @@ def lingrars(latitude, meteolist, plot):
     # theoretical maximum tillering size = 0.693
     fsmax = nitr / nitmax * 0.693
 
-    # ************************************************************************
-    # ***   11. data
-    # ************************************************************************
+    # 11. data
     # specifying variables:
     davtmp = np.mean(np.array([tmmn, tmmx]), axis=0)
     dec = np.zeros(fintim)
@@ -164,10 +152,10 @@ def lingrars(latitude, meteolist, plot):
     runcu = np.zeros(fintim + 1)  # cumulative runoff (avdl)
     intLAI = np.zeros(fintim + 1)  # cumulative rainfall intercepted by leaves (avdl)
 
-    # * ---------------------------------------------------------------------*
-    # *     subroutine penman                                                *
-    # *     purpose: computation of the penman equation                      *
-    # * ---------------------------------------------------------------------*
+    # ---------------------------------------------------------------------*
+    #     subroutine penman                                                *
+    #     purpose: computation of the penman equation                      *
+    # ---------------------------------------------------------------------*
 
     dtrjm2 = rdd * 1.e3
     boltzm = 5.668e-8
@@ -192,10 +180,10 @@ def lingrars(latitude, meteolist, plot):
     ptran = np.zeros(fintim)
     rnintc = np.zeros(fintim)
 
-    # * ---------------------------------------------------------------------*
-    # *     subroutine evaptr                                                *
-    # *     purpose: to compute actual rates of evaporation and transpiration*
-    # * ---------------------------------------------------------------------*
+    # ---------------------------------------------------------------------*
+    #     subroutine evaptr                                                *
+    #     purpose: to compute actual rates of evaporation and transpiration*
+    # ---------------------------------------------------------------------*
 
     wc = np.zeros(fintim)
     waad = np.zeros(fintim)
@@ -207,19 +195,17 @@ def lingrars(latitude, meteolist, plot):
     evap = np.zeros(fintim)
     tran = np.zeros(fintim)
 
-    # * ---------------------------------------------------------------------*
-    # *     subroutine drunir                                                *
-    # *     purpose: to compute rates of drainage, runoff and irrigation     *
-    # * ---------------------------------------------------------------------*
+    # ---------------------------------------------------------------------*
+    #     subroutine drunir                                                *
+    #     purpose: to compute rates of drainage, runoff and irrigation     *
+    # ---------------------------------------------------------------------*
 
     wast = np.zeros(fintim)
     drain = np.zeros(fintim)
     runoff = np.zeros(fintim)
     irrig = np.zeros(fintim)
 
-    # ************************************************************************
-    # ***   5. water balance and root depth growth (from lingra for thymothee)
-    # ************************************************************************
+    # 5. water balance and root depth growth (from lingra for thymothee)
     rdaha = np.zeros(fintim)
     harv = np.zeros(fintim)
     rrootd = np.zeros(fintim)
@@ -273,9 +259,9 @@ def lingrars(latitude, meteolist, plot):
         # northern / southern hemisphere! warnings from this line!
         dec[i] = -np.arcsin(np.sin(23.45 * rad) * np.cos(2. * pi * (doy[i] + 10.) / 365.))
 
-        if (np.arctan(-1. / np.tan(rad * latitude)) > dec[i]):
+        if np.arctan(-1. / np.tan(rad * latitude)) > dec[i]:
             decc[i] = np.arctan(-1. / np.tan(rad * latitude))
-        elif (np.arctan(1. / np.tan(rad * latitude)) < dec[i]):
+        elif np.arctan(1. / np.tan(rad * latitude)) < dec[i]:
             decc[i] = np.arctan(-1. / np.tan(rad * latitude))
         else:
             decc[i] = dec[i]
@@ -289,14 +275,14 @@ def lingrars(latitude, meteolist, plot):
         tmeff[i] = max(davtmp[i] - tmbas1, 0.)
 
         # rate variables
-        if (soitmp[i] < 3):
+        if soitmp[i] < 3:
             redtmp[i] = 0
-        elif (soitmp[i] > 8):
+        elif soitmp[i] > 8:
             redtmp[i] = 1
         else:
             redtmp[i] = (soitmp[i] - 3) * 0.2  # luerd1
 
-        if (dtr[i] < 10):
+        if dtr[i] < 10:
             redrdd[i] = 1
         else:
             redrdd[i] = ((1 + (10 / (40 - 10) * 0.67)) - dtr[i] * (0.67 / (40 - 10)))  # luerd2
@@ -311,41 +297,41 @@ def lingrars(latitude, meteolist, plot):
         parint[i] = fint[i] * par[i]
         # fraction of dry matter allocated to roots, kg kg-1
 
-        # * ---------------------------------------------------------------------*
-        # *     subroutine penman                                                *
-        # *     purpose: computation of the penman equation                      *
-        # * ---------------------------------------------------------------------*
+        # ---------------------------------------------------------------------*
+        #     subroutine penman                                                *
+        #     purpose: computation of the penman equation                      *
+        # ---------------------------------------------------------------------*
         pevap[i] = max(0.0, np.exp(-0.5 * LAI[i]) * (penmrs[i] + penmd[i]) / lhvap)
         ptran[i] = (1. - np.exp(-0.5 * LAI[i])) * (penmrc[i] + penmd[i]) / lhvap
         rnintc[i] = min(rain[i], 0.25 * LAI[i])
         ptran[i] = max(0.0, ptran[i] - 0.5 * rnintc[i])
 
-        # * ---------------------------------------------------------------------*
-        # *     subroutine evaptr                                                *
-        # *     purpose: to compute actual rates of evaporation and transpiration*
-        # * ---------------------------------------------------------------------*
+        # ---------------------------------------------------------------------*
+        #     subroutine evaptr                                                *
+        #     purpose: to compute actual rates of evaporation and transpiration*
+        # ---------------------------------------------------------------------*
         wc[i] = 0.001 * wa[i] / rootd[i]
         waad[i] = 1000. * wcad * rootd[i]
         wafc[i] = 1000. * wcfc * rootd[i]
         evap1[i] = pevap[i] * max(0., min(1., (wc[i] - wcad) / (wcfc - wcad)))
-        if (wc[i] > wccr):
+        if wc[i] > wccr:
             fr[i] = max(0., min(1., (wcst - wc[i]) / (wcst - wcwet)))
         else:
             fr[i] = max(0., min(1., (wc[i] - wcwp) / (wccr - wcwp)))
 
-        ####### INSERT_RStrn_HERE ##########
-        if (np.isnan(RStrn[i])):
+        # INSERT_RStrn_HERE ##########
+        if np.isnan(RStrn[i]):
             tran[i] = ptran[i] * fr[i]
         else:
             tran[i] = RStrn[i]
         ####################################
 
-        if (evap1[i] + tran[i] == 0.0):
+        if evap1[i] + tran[i] == 0.0:
             availf[i] = min(1., (wa[i] - waad[i]) / 0.01)  # notnul removed!
         else:
             availf[i] = min(1., (wa[i] - waad[i]) / (evap1[i] + tran[i]))  # notnul removed!
-        ####### INSERT_RSevp_HERE ##########
-        if (np.isnan(RSevp[i])):
+        # INSERT_RSevp_HERE ##########
+        if np.isnan(RSevp[i]):
             evap[i] = evap1[i] * availf[i]
         else:
             evap[i] = RSevp[i]
@@ -365,14 +351,14 @@ def lingrars(latitude, meteolist, plot):
         # ************************************************************************
         # ***   5. water balance and root depth growth (from lingra for thymothee)
         # ************************************************************************
-        if (rootdm - rootd[i] <= 0 or wc[i] - wcwp <= 0):
+        if rootdm - rootd[i] <= 0 or wc[i] - wcwp <= 0:
             rrootd[i] = rrdmax * 0
         else:
             rrootd[i] = rrdmax * 1
 
         explor[i] = 1000. * rrootd[i] * wcfc  # assumption that explored layers are at fc!
 
-        if (ptran[i] <= 0):
+        if ptran[i] <= 0:
             tranrf[i] = 1
         else:
             tranrf[i] = min(1, tran[i] / ptran[i])  # insw removed!
@@ -388,27 +374,21 @@ def lingrars(latitude, meteolist, plot):
 
         #     mowing at observation dates
         #     reset days after harv
-        if (RScut[i] == 1 and wlvg[i] > cwlvg):
+        if RScut[i] == 1 and wlvg[i] > cwlvg:
             harv[i] = wlvg[i] - cwlvg
-        if (RScut[i] == 1 and wlvg[i] > cwlvg):
             rdaha[i] = -daha[i]
-        if (RScut[i] == 1 and wlvg[i] > cwlvg):
             incut[i + 1] = incut[i] + 1.
-
-        #     no mowing in current season, do not increase rate
-        #     of days after harv
-
-        if (incut[i] == 0.):
-            rdaha[i] = 0
-
-        #     mowing in current season, increase rate of days
-        #     after harvests
+        else:
+            # no mowing in current season, do not increase rate
+            # of days after harv
+            if incut[i] == 0.:
+                rdaha[i] = 0
 
         # temperature dependent leaf appearance rate, according to
         # (davies and thomas, 1983), soil temperature (soitmp)is used as
         # driving force which is estimated from a 10 day running average
 
-        if (redtmp[i] > 0):
+        if redtmp[i] > 0:
             leafn[i] = soitmp[i] * 0.01
         else:
             leafn[i] = 0
@@ -416,19 +396,19 @@ def lingrars(latitude, meteolist, plot):
         # leaf elongation rate affected by temperature
         # cm day-1 tiller-1
 
-        if (davtmp[i] - tmbas1 > 0):
+        if davtmp[i] - tmbas1 > 0:
             lera[i] = 0.83 * np.log(max(davtmp[i], 2.)) - 0.8924
         else:
             lera[i] = 0  # log10 or log?
 
-        if ((harv[i] - 0.1) < 0):
+        if (harv[i] - 0.1) < 0:
             lera2[i] = lera[i]
         else:
             lera2[i] = -1 * length[i]
 
         # subroutine tilsub
         dtil[i] = 0.
-        if (daha[i] < 8):
+        if daha[i] < 8:
             reftil[i] = max(0., 0.335 - 0.067 * LAI[i]) * redtmp[i]
         else:
             reftil[i] = max(0., min(fsmax, 0.867 - 0.183 * LAI[i])) * redtmp[i]
@@ -442,7 +422,7 @@ def lingrars(latitude, meteolist, plot):
 
         dtild[i] = max(0.01 * (1. + tsum[i] / 600.), 0.05 * (LAI[i] - LAIcr) / LAIcr)
 
-        if (tiller[i] < 14000):
+        if tiller[i] < 14000:
             dtil[i] = (reftil[i] - dtild[i]) * leafn[i] * tiller[i]
         else:
             dtil[i] = -dtild[i] * leafn[i] * tiller[i]
@@ -451,7 +431,7 @@ def lingrars(latitude, meteolist, plot):
         lued[i] = min(lue1[i] * (0.336 + 0.224 * nitr) / (0.336 + 0.224 * nitmax), lue1[i] * tranrf[i])
 
         # start of growing season
-        if (harv[i] == 0):
+        if harv[i] == 0:
             gtwso[i] = lued[i] * parint[i] * (1. + 0.8 * np.log(co2a / 360.)) * 10.
         else:
             gtwso[i] = 0.
@@ -464,18 +444,18 @@ def lingrars(latitude, meteolist, plot):
 
         # conversion to total sink limited carbon demand,
         # kg leaf ha ground-1 d-1
-        if (harv[i] <= 0):
+        if harv[i] <= 0:
             gtwsi[i] = dLAIs[i] * (1. / sla) * (1. / flv[i])
         else:
             gtwsi[i] = 0
 
         # actual growth switches between sink- and source limitation
         # (more or less dry matter formed than can be stored)
-        if ((gtwso2[i] - gtwsi[i]) > 0):
+        if (gtwso2[i] - gtwsi[i]) > 0:
             gre[i] = gtwso2[i] - gtwsi[i]
         else:
             gre[i] = 0
-        if ((gtwso2[i] - gtwsi[i]) <= 0):
+        if (gtwso2[i] - gtwsi[i]) <= 0:
             gtw[i] = gtwso2[i]
         else:
             gtw[i] = gtwsi[i]
@@ -504,7 +484,7 @@ def lingrars(latitude, meteolist, plot):
 
         # actual death rate of leaf area, due to relative death
         # rate of leaf area or rate of change due to cutting, ha ha-1 d-1
-        if (harv[i] <= 0):
+        if harv[i] <= 0:
             dLAI[i] = LAI[i] * (1. - np.exp(-rdr[i]))
         else:
             dLAI[i] = harv[i] * sLAInt[i]
@@ -516,7 +496,7 @@ def lingrars(latitude, meteolist, plot):
 
         # rate of change of dry weight of green leaves due to
         # growth and senescence of leaves or periodical harvest, kg ha-1 d-1
-        if (harv[i] <= 0):
+        if harv[i] <= 0:
             glv[i] = gtw[i] * flv[i]
         else:
             glv[i] = 0
@@ -524,23 +504,23 @@ def lingrars(latitude, meteolist, plot):
         # change in green leaf weight
         rlv[i] = glv[i] - dlv[i]
 
-        ####### INSERT_RSlai_HERE ##########
-        if ((i + 1) < len(RSlai)):
-            if (np.isnan(RSlai[i + 1])):
+        # INSERT_RSlai_HERE ##########
+        if (i + 1) < len(RSlai):
+            if np.isnan(RSlai[i + 1]):
                 LAI[i + 1] = LAI[i] + rLAI[i]  # leaf area index, ha ha-1
             else:
                 LAI[i + 1] = RSlai[i + 1]
 
-        ####### INSERT_RStrn_HERE ##########
-        if ((i + 1) < len(RStrn)):
-            if (np.isnan(RStrn[i + 1])):
+        # INSERT_RStrn_HERE ##########
+        if (i + 1) < len(RStrn):
+            if np.isnan(RStrn[i + 1]):
                 tracu[i + 1] = tracu[i] + tran[i]  # cumulative transpiration, mm
             else:
                 tracu[i + 1] = tracu[i] + RStrn[i + 1]
 
-        ####### INSERT_RSevp_HERE ##########
-        if ((i + 1) < len(RSevp)):
-            if (np.isnan(RSevp[i + 1])):
+        # INSERT_RSevp_HERE ##########
+        if (i + 1) < len(RSevp):
+            if np.isnan(RSevp[i + 1]):
                 evacu[i + 1] = evacu[i] + evap[i]  # cumulative evaporation, mm
             else:
                 evacu[i + 1] = evacu[i] + RSevp[i]
@@ -586,10 +566,10 @@ def lingrars(latitude, meteolist, plot):
         # wrtmin[i] = -wrt[i]
 
     # ENDLOOP}
-    #print("tiller[365], yielD[365], wlvg[365], wlvd1[365], parcu[365], grass[365], tracu[365], evacu[365]")
+    # print("tiller[365], yielD[365], wlvg[365], wlvd1[365], parcu[365], grass[365], tracu[365], evacu[365]")
 
     # PLOT
-    if(plot is True):
+    if plot is True:
         import numpy as np
         import matplotlib.pyplot as plt
 
@@ -641,4 +621,4 @@ def lingrars(latitude, meteolist, plot):
 
     # Return last day of processing values
     output = [tiller[-1], yielD[-1], wlvg[-1], wlvd1[-1], parcu[-1], grass[-1], tracu[-1], evacu[-1]]
-    return(output)
+    return output

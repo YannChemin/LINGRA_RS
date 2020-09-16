@@ -60,11 +60,12 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     # Make Wind speed (u10 x v10 components)
     windspeed = np.abs(np.multiply(u10, v10))
     # Solar Radiation J.m-2 -> kJ.m-2
-    ssrd = np.divide(ssrd, 1000)
+    # Downward is negative, so * -1 for LingraRS
+    ssrd = np.divide(ssrd, -1000)
     for t in range(ssrd.shape[0]):
         if ssrd[t] < 0.001:
             ssrd[t] = np.nan
-
+    print(ssrd)
     # Surface Pressure Pa -> hPa
     # sp = np.divide(sp, 100)
     # Temperature K -> C
@@ -94,7 +95,7 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     # dsasD=dsas.resample(time='1D').mean(skipna=True)
     # Make mean on non NAN values
     dsasD = dsas.resample(time='1D').reduce(np.nansum)
-
+    print(dsasD.ssrd)
     wspd_agg = np.zeros_like(time_convert, dtype=np.float)
     for i in range(0, windspeed.shape[0], 2):
         wspd_agg[int(np.floor(i / 2))] = (windspeed[i] + windspeed[i + 1]) * 0.5

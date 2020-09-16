@@ -121,7 +121,7 @@ def getPixelVals(netcdfFile, layer, longitude, latitude):
     lat = float(latitude)
     # lon=URx+X*Rsx
     X = int((lon-URx)/Rsx)
-    #lat=URy-Y*Rsy
+    # lat=URy-Y*Rsy
     Y = int((URy-lat)/Rsy)
     # print(X,Y)
 
@@ -139,17 +139,17 @@ def getPixelVals(netcdfFile, layer, longitude, latitude):
         result1.remove('')
 
     # Create and fill a Numpy array
-    array = np.zeros(len(result1))
+    arr = np.zeros(len(result1))
     for i in range(len(result1)):
         try:
-            array[i] = float(result1[i])
+            arr[i] = float(result1[i])
         except:
             print("###%s###" % (result1[i]))
 
     # Replace nodata with NAN
-    [np.nan if x == nodata else x for x in array]
+    arr[arr == nodata] = np.nan
     # Rescale the data
-    array = offset+array*scale
+    array = offset+arr*scale
     # Return the array
     return array
 

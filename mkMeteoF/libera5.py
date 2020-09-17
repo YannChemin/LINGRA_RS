@@ -119,7 +119,9 @@ def getPixelVals(netcdffile, layer, longitude, latitude):
     # Replace nodata (often -32767) with NAN
     arr[arr == nodata] = np.nan
     arr[arr == -nodata] = np.nan
-    # Fill in value is sometimes -32766
+    # Fill in value is sometimes -32766, but not documented...
+    arr[arr == 32766] = np.nan
+    # Fill values to NAN
     arr[arr == fillva] = np.nan
     arr[arr == -fillva] = np.nan
     # Rescale the data

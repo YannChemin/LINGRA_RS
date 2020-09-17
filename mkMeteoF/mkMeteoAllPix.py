@@ -139,15 +139,15 @@ for col in range(cols):
             meteolist = mkmeteo4lingrars(args.netcdf, args.RSdir, longitude, latitude)
             # Run th model
             (tiller, yielD, wlvg, wlvd1, parcu, grass, tracu, evacu) = lingrars(latitude, meteolist, plot)
-            # Let the pixels fit into each map (*10000 bc INT32 maps)
-            d0[col][row] = tiller * 10000
-            d1[col][row] = yielD * 10000
-            d2[col][row] = wlvg * 10000
-            d3[col][row] = wlvd1 * 10000
-            d4[col][row] = parcu * 10000
-            d5[col][row] = grass * 10000
-            d6[col][row] = tracu * 10000
-            d7[col][row] = evacu * 10000
+            # Let the pixels fit into each map (*1000 bc INT32 maps)
+            d0[col][row] = tiller * 1000
+            d1[col][row] = yielD * 1000
+            d2[col][row] = wlvg * 1000
+            d3[col][row] = wlvd1 * 1000
+            d4[col][row] = parcu  # Already a large number
+            d5[col][row] = grass * 1000
+            d6[col][row] = tracu  # Already a large number
+            d7[col][row] = evacu  # Already a large number
 
 # Write arrays to files
 b0.WriteArray(d0)

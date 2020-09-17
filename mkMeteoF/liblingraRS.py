@@ -26,7 +26,7 @@ def lingrars(latitude, meteolist, plot):
     # latitude (used to calculate daylength;
     year = meteolist[0]  # year in weather file
     doy = meteolist[1]  # doy of the year
-    rdd = meteolist[2]  # solar radiation (kj m-2 day-1)
+    dtr = meteolist[2]  # solar radiation (j m-2 day-1)
     tmmn = meteolist[3]  # minimum temperature (degrees celsius)
     tmmx = meteolist[4]  # maximum temperature (degrees celsius)
     vp = meteolist[5]  # water vapour pressure (kpa)
@@ -36,7 +36,7 @@ def lingrars(latitude, meteolist, plot):
     RStrn = meteolist[9]  # daily RS Transpiration actual (mm day-1)
     RSlai = meteolist[10]  # daily RS LAI (-)
     RScut = meteolist[11]  # daily RS cutting event (0/1)
-    print(year[0], doy[0], rdd[0], tmmn[0], tmmx[0], vp[0], wn[0], rain[0], RSevp[0], RStrn[0], RSlai[0], RScut[0])
+    print(year[0], doy[0], dtr[0], tmmn[0], tmmx[0], vp[0], wn[0], rain[0], RSevp[0], RStrn[0], RSlai[0], RScut[0])
 
     # number of days in simulation (days)
     fintim = len(year)
@@ -95,7 +95,6 @@ def lingrars(latitude, meteolist, plot):
     dec = np.zeros(fintim)
     decc = np.zeros(fintim)
     dayl = np.zeros(fintim)
-    dtr = rdd / 1.e+3
     parav = np.zeros(fintim)
     rsoitm = np.zeros(fintim)
     soitmp = np.zeros(fintim + 1)
@@ -157,7 +156,6 @@ def lingrars(latitude, meteolist, plot):
     #     purpose: computation of the penman equation                      *
     # ---------------------------------------------------------------------*
 
-    dtrjm2 = rdd * 1.e3
     boltzm = 5.668e-8
     lhvap = 2.4e6
     psych = 0.067
@@ -249,8 +247,8 @@ def lingrars(latitude, meteolist, plot):
     for i in range(fintim):
         vp[i] = min(vp[i], svp[i])
         rlwn[i] = bbrad[i] * max(0., 0.55 * (1. - vp[i] / svp[i]))
-        nrads[i] = dtrjm2[i] * (1. - 0.15) - rlwn[i]
-        nradc[i] = dtrjm2[i] * (1. - 0.25) - rlwn[i]
+        nrads[i] = dtr[i] * (1. - 0.15) - rlwn[i]
+        nradc[i] = dtr[i] * (1. - 0.25) - rlwn[i]
         penmrs[i] = nrads[i] * slope[i] / (slope[i] + psych)
         penmrc[i] = nradc[i] * slope[i] / (slope[i] + psych)
         wdf[i] = 2.63 * (1.0 + 0.54 * wn[i])

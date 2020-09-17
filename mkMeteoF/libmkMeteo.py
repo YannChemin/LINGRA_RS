@@ -14,7 +14,7 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     Column  Daily value
     1       year
     2       day
-    3       irradiation                   (kJ m-2 d-1)
+    3       irradiation                   (J m-2 d-1)
     4       minimum temperature           (degrees Celsius)
     5       maximum temperature           (degrees Celsius)
     6       early morning vapour pressure (kPa)
@@ -59,18 +59,10 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
             print("name of this dataset is unknown")
 
     # Make Wind speed (u10 x v10 components)
-    windspeed = np.abs(np.multiply(u10, v10))
-    # Solar Radiation J.m-2.s -> kJ.m-2.s
-    # Downward is negative, so * -1 for LingraRS
-    # Assuming rad per s so * 3600 for an hour
-    print(np.nanmean(ssrd[:8]))
-    ssrd = np.divide(ssrd, 3600 )
-    #for t in range(ssrd.shape[0]):
-        #if ssrd[t] < 0.001:
-         #   ssrd[t] = np.nan
-    print(ssrd[0])
-    print(np.nanmean(ssrd[:8]))
-    exit()
+    wspd = np.abs(np.multiply(u10, v10))
+    # Solar Radiation J.m-2.s
+    # Assuming rad per s so /3600 for an hour
+    ssrd = np.divide(ssrd, 3600)
     # Surface Pressure Pa -> hPa
     # sp = np.divide(sp, 100)
     # Temperature K -> C
@@ -82,58 +74,41 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
 
     # Before daily conversion, remove night values for some
     # Replace nodata with NAN
-    ssrd_agg = np.zeros_like(time_convert, dtype=np.float)
-    for i in range(0, ssrd.shape[0], 2):
-        ssrd_agg[int(np.floor(i / 2))] = (ssrd[i] + ssrd[i + 1]) * 0.5
-
-    ssrd_agg[ssrd_agg == 0.0000] = np.nan
-    # [np.nan if x == 0.0000 else x for x in ssrd_agg]
+    ssrd[ssrd == 0.0000] = np.nan
 
     # Convert from hour to day
     dsas = xr.Dataset(
         {
-            "ssrd": ("time", ssrd_agg),
+            "ssrd": ("time", ssrd),
         },
         {"time": time_convert},
     )
     # Make mean on non NAN values
     # dsasD=dsas.resample(time='1D').mean(skipna=True)
     # Make mean on non NAN values
-    dsasD = dsas.resample(time='1D').reduce(np.nansum)
-    print(dsasD.ssrd)
-    wspd_agg = np.zeros_like(time_convert, dtype=np.float)
-    for i in range(0, windspeed.shape[0], 2):
-        wspd_agg[int(np.floor(i / 2))] = (windspeed[i] + windspeed[i + 1]) * 0.5
+    dsasD = dsas.resample(time='1D').reduce(np.nanmean)
 
     dsa = xr.Dataset(
         {
-            "wspd": ("time", wspd_agg),
+            "wspd": ("time", wspd),
         },
         {"time": time_convert},
     )
     dsaD = dsa.resample(time='1D').mean()
 
     # Precipitation summed by day
-    pmm_agg = np.zeros_like(time_convert, dtype=np.float)
-    for i in range(0, tp.shape[0], 2):
-        pmm_agg[int(np.floor(i / 2))] = (tp[i] + tp[i + 1]) * 0.5
-
     dsap = xr.Dataset(
         {
-            "prmm": ("time", pmm_agg),
+            "prmm": ("time", tp),
         },
         {"time": time_convert},
     )
     dsapD = dsap.resample(time='1D').sum()
 
     # Minimum temperature per day
-    t2m_agg = np.zeros_like(time_convert, dtype=np.float)
-    for i in range(0, t2m.shape[0], 2):
-        t2m_agg[int(np.floor(i / 2))] = (t2m[i] + t2m[i + 1]) * 0.5
-
     dstmin = xr.Dataset(
         {
-            "tmin": ("time", t2m_agg),
+            "tmin": ("time", t2m),
         },
         {"time": time_convert},
     )
@@ -142,20 +117,16 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     # Maximum temperature per day
     dstmax = xr.Dataset(
         {
-            "tmax": ("time", t2m_agg),
+            "tmax": ("time", t2m),
         },
         {"time": time_convert},
     )
     dstmaxD = dstmax.resample(time='1D').max()
 
     # Minimum dew point temperature per day
-    d2m_agg = np.zeros_like(time_convert, dtype=np.float)
-    for i in range(0, d2m.shape[0], 2):
-        d2m_agg[int(np.floor(i / 2))] = (d2m[i] + d2m[i + 1]) * 0.5
-
     dsdmin = xr.Dataset(
         {
-            "dmin": ("time", d2m_agg),
+            "dmin": ("time", d2m),
         },
         {"time": time_convert},
     )

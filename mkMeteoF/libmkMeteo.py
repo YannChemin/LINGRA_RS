@@ -164,7 +164,11 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     MODET = np.asarray(MODET, dtype=np.float)
     MYDET = np.asarray(MYDET, dtype=np.float)
     MODET[MODET == 32765] = np.nan
+    MODET[MODET == 32766] = np.nan
+    MODET[MODET == 32767] = np.nan
     MYDET[MYDET == 32765] = np.nan
+    MYDET[MYDET == 32766] = np.nan
+    MYDET[MYDET == 32767] = np.nan
     MODET = np.divide(MODET, 10)
     MYDET = np.divide(MYDET, 10)
     # print("START MODET", MODET, "END MODET")

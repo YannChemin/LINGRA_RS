@@ -94,6 +94,7 @@ def getPixelVals(netcdffile, layer, longitude, latitude):
     # Extract NoData Value from layer
     nodata = int(dict_nc['missing_value'])
     fillva = int(dict_nc['_FillValue'])
+    print(offset, scale, nodata, fillva)
 
     lat, lon = nc.variables['latitude'], nc.variables['longitude']
     # extract lat/lon values (in degrees) to numpy arrays
@@ -116,6 +117,8 @@ def getPixelVals(netcdffile, layer, longitude, latitude):
 
     # Select all of the temporal instances of the pixel
     arr = nc.variables[layer][:, 0, iy_min, ix_min]
+    if layer == 'ssrd':
+        arr[arr == 0] = np.nan
     # Replace nodata (often -32767) with NAN
     arr[arr == nodata] = np.nan
     arr[arr == -nodata] = np.nan
@@ -124,6 +127,8 @@ def getPixelVals(netcdffile, layer, longitude, latitude):
     # Fill values to NAN
     arr[arr == fillva] = np.nan
     arr[arr == -fillva] = np.nan
+    if layer == 'ssrd':
+        return arr
     # Rescale the data
     array = offset + arr * scale
     # Return the array

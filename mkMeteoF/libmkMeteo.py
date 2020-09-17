@@ -37,35 +37,40 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     time_convert = libera5.getTimeNetcdf(netcdf)
 
     # Set the basic array generation loop
-    layers = ['ssrd', 'u10', 'v10', 't2m', 'sp', 'tp', 'd2m']
+    # layers = ['ssrd', 'u10', 'v10', 't2m', 'sp', 'tp', 'd2m']
+    layers = ['ssrd', 'u10', 'v10', 't2m', 'tp', 'd2m']
     for ll in range(len(layers)):
-        array = libera5.getPixelVals(netcdf, layers[ll], longitude, latitude)
+        arr = libera5.getPixelVals(netcdf, layers[ll], longitude, latitude)
         if layers[ll] == 'ssrd':
-            ssrd = np.copy(array)
+            ssrd = np.copy(arr).astype('float64')
         elif layers[ll] == 'u10':
-            u10 = np.copy(array)
+            u10 = np.copy(arr).astype('float64')
         elif layers[ll] == 'v10':
-            v10 = np.copy(array)
+            v10 = np.copy(arr).astype('float64')
         elif layers[ll] == 't2m':
-            t2m = np.copy(array)
+            t2m = np.copy(arr).astype('float64')
         # elif layers[ll] == 'sp':
-        #   sp = np.copy(array)
+        #   sp = np.copy(arr).astype('float64')
         elif layers[ll] == 'tp':
-            tp = np.copy(array)
+            tp = np.copy(arr).astype('float64')
         elif layers[ll] == 'd2m':
-            d2m = np.copy(array)
+            d2m = np.copy(arr).astype('float64')
         else:
             print("name of this dataset is unknown")
 
     # Make Wind speed (u10 x v10 components)
     windspeed = np.abs(np.multiply(u10, v10))
-    # Solar Radiation J.m-2 -> kJ.m-2
+    # Solar Radiation J.m-2.s -> kJ.m-2.s
     # Downward is negative, so * -1 for LingraRS
-    ssrd = np.divide(ssrd, -1000)
-    for t in range(ssrd.shape[0]):
-        if ssrd[t] < 0.001:
-            ssrd[t] = np.nan
-    print(ssrd)
+    # Assuming rad per s so * 3600 for an hour
+    print(np.nanmean(ssrd[:8]))
+    ssrd = np.divide(ssrd, 3600 )
+    #for t in range(ssrd.shape[0]):
+        #if ssrd[t] < 0.001:
+         #   ssrd[t] = np.nan
+    print(ssrd[0])
+    print(np.nanmean(ssrd[:8]))
+    exit()
     # Surface Pressure Pa -> hPa
     # sp = np.divide(sp, 100)
     # Temperature K -> C

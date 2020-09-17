@@ -83,73 +83,52 @@ def getPixelVals(netcdfFile, layer, longitude, latitude):
     """
     Function to query pixels values for a given layer at a given Lat/long
     """
-    # Construct the Layer name for GDAL
-    lyr = "NETCDF:"+netcdfFile+":"+layer
-    # print(lyr)
-
-    # Parse GDALINFO for the needed
-    # Define UR + Resolution
-    URx = os.popen('gdalinfo %s | grep Origin | sed "s/\(.*\)(\(.*\),\(.*\))/\\2/"' % (lyr)).read()
-    URy = os.popen('gdalinfo %s | grep Origin | sed "s/\(.*\)(\(.*\),\(.*\))/\\3/"' % (lyr)).read()
-    # print(URx,URy)
-    Rsx = os.popen('gdalinfo %s | grep Pixel\ Size | sed "s/\(.*\)(\(.*\),\(.*\))/\\2/"' % (lyr)).read()
-    Rsy = os.popen('gdalinfo %s | grep Pixel\ Size | sed "s/\(.*\)(\(.*\),-\(.*\))/\\3/"' % (lyr)).read()
-    # print(Rsx,Rsy)
+    import netCDF4
+    nc = netCDF4.Dataset(netcdfFile)
+    dict_nc = nc[layer].__dict__
     # Extract the offset and scale from netcdf file
-    offset = os.popen('gdalinfo %s | grep Offset | tail -n1 | sed "s/\(.*\):\ \(.*\),\(.*\):\(.*\)/\\2/"' % (lyr)).read()
-    scale = os.popen('gdalinfo %s | grep Offset | tail -n1 | sed "s/\(.*\):\ \(.*\),\(.*\):\(.*\)/\\4/"' % (lyr)).read()
-    # print(offset,scale)
+    offset = float(dict_nc['add_offset'])
+    scale = float(dict_nc['scale_factor'])
     # Extract NoData Value from layer
-    nodata = os.popen('gdalinfo %s | grep NoData\ Value | tail -n1 | sed "s/\ \ NoData\ Value=//"' % (lyr)).read()
-    # Get row and column numbers (Not needed at this point)
-    # nX = os.popen('gdalinfo %s | grep Size\ is\ | sed "s/Size\ is\ \(.*\),\(.*\)/\\1/"' % (lyr)).read()
-    # nY = os.popen('gdalinfo %s | grep Size\ is\ | sed "s/Size\ is\ \(.*\),\(.*\)/\\2/"' % (lyr)).read()
-    # print(nX,nY)
-    
-    # Clean vars
-    URx = float(URx.strip())
-    URy = float(URy.strip())
-    Rsx = float(Rsx.strip())
-    Rsy = float(Rsy.strip())
-    offset = float(offset.strip())
-    scale = float(scale.strip())
-    # print(offset,scale)
-    nodata = int(nodata.strip())
+    nodata = int(dict_nc['missing_value'])
+    fillva = int(dict_nc['_FillValue'])
 
-    # Convert from Lat/Long to X/Y
-    lon = float(longitude)
-    lat = float(latitude)
-    # lon=URx+X*Rsx
-    X = int((lon-URx)/Rsx)
-    # lat=URy-Y*Rsy
-    Y = int((URy-lat)/Rsy)
-    # print(X,Y)
+    lat, lon = nc.variables['latitude'], nc.variables['longitude']
+    # extract lat/lon values (in degrees) to numpy arrays
+    latvals = lat[:]
+    lonvals = lon[:]
 
-    # Create GDALLOCATION X Y Var
-    loc = str(X)+" "+str(Y)
+    # print(latvals.shape)
+    # print(lonvals.shape)
+    xl = np.linspace(lonvals.min(), lonvals.max(), lonvals.shape[0])
+    yl = np.linspace(latvals.min(), latvals.max(), latvals.shape[0])
+    xx, yy = np.meshgrid(xl, yl, sparse=True)
 
-    # Query the temporal values at pixel location in image column and row
-    result = os.popen('gdallocationinfo -valonly %s %s' % (lyr, loc)).read()
-    # NETCDF driver does not read in projected lon lat (Not needed)
-    # result = os.popen('gdallocationinfo -valonly -wgs84 %s %s' % (lyr, loc)).read()
+    def distance_2d(longitude, latitude, xgrid, ygrid):
+        return np.hypot(xgrid - longitude, ygrid - latitude)
 
-    # cleanup the \n everywhere and remove empty elements
-    result1 = list(result.split("\n"))
-    while '' in result1:
-        result1.remove('')
+    dist_grid = distance_2d(longitude, latitude, xx, yy)
+    minval = dist_grid.min()
+    # print(minval)
+    # print(distances[0][1])
+    for x in range(dist_grid.shape[1]):
+        for y in range(dist_grid.shape[0]):
+            if dist_grid[y][x] == minval:
+                ix_min = x
+                iy_min = y
+                # print(x, y, dist_grid[y][x])
 
-    # Create and fill a Numpy array
-    arr = np.zeros(len(result1))
-    for i in range(len(result1)):
-        try:
-            arr[i] = float(result1[i])
-        except:
-            print("###%s###" % (result1[i]))
-
-    # Replace nodata with NAN
+    # Select all of the temporal instances of the pixel
+    arr = nc.variables[layer][:, 0, iy_min, ix_min]
+    # Replace nodata (often -32767) with NAN
     arr[arr == nodata] = np.nan
+    arr[arr == -nodata] = np.nan
+    # Fill in value is sometimes -32766
+    arr[arr == fillva] = np.nan
+    arr[arr == -fillva] = np.nan
     # Rescale the data
-    array = offset+arr*scale
+    array = offset + arr * scale
+    print(array)
     # Return the array
     return array
 

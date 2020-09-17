@@ -144,7 +144,7 @@ for col in range(cols):
             d1[col][row] = yielD * 1000
             d2[col][row] = wlvg * 1000
             d3[col][row] = wlvd1 * 1000
-            print("parcu=", parcu)
+            # TODO check values out for print("parcu=", parcu)
             d4[col][row] = parcu  # Already a large number
             d5[col][row] = grass * 1000
             d6[col][row] = tracu  # Already a large number

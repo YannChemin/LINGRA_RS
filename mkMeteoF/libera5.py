@@ -94,7 +94,7 @@ def getPixelVals(netcdffile, layer, longitude, latitude):
     # Extract NoData Value from layer
     nodata = int(dict_nc['missing_value'])
     fillva = int(dict_nc['_FillValue'])
-    print(offset, scale, nodata, fillva)
+    # print(offset, scale, nodata, fillva)
 
     lat, lon = nc.variables['latitude'], nc.variables['longitude']
     # extract lat/lon values (in degrees) to numpy arrays

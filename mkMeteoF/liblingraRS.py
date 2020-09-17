@@ -37,6 +37,8 @@ def lingrars(latitude, meteolist, plot):
     RSlai = meteolist[10]  # daily RS LAI (-)
     RScut = meteolist[11]  # daily RS cutting event (0/1)
     print(year[0], doy[0], dtr[0], tmmn[0], tmmx[0], vp[0], wn[0], rain[0], RSevp[0], RStrn[0], RSlai[0], RScut[0])
+    print(year[1], doy[1], dtr[1], tmmn[1], tmmx[1], vp[1], wn[1], rain[1], RSevp[1], RStrn[1], RSlai[1], RScut[1])
+    print(year[2], doy[2], dtr[2], tmmn[2], tmmx[2], vp[2], wn[2], rain[2], RSevp[2], RStrn[2], RSlai[2], RScut[2])
 
     # number of days in simulation (days)
     fintim = len(year)

@@ -34,7 +34,7 @@ def processlingrapixel(col, row, data, pixelWidth, pixelHeight, xO, yO, plot, ne
         # exit() TODO plot the graphs and check if all ok
         # Let the pixels fit into each map (*1000 bc INT32 maps)
         # TODO check values out for print("parcu=", parcu)
-        return tiller * 1000, yielD * 1000, wlvg * 1000, wlvd1 * 1000, parcu, grass * 1000, tracu, evacu
+        return tiller * 1000, yielD * 1000, wlvg * 1000, wlvd1 * 1000, parcu / 1000000, grass * 1000, tracu, evacu
     else:
         # Return something to the parallelization procedure storage array
         return 0, 0, 0, 0, 0, 0, 0, 0

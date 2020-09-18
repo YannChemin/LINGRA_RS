@@ -26,7 +26,7 @@ def processlingrapixel(col, row, data, pixelWidth, pixelHeight, xO, yO, plot, ne
     if data == 1:
         longitude = col * pixelWidth + xO
         latitude = yO - row * pixelHeight
-        print(col, row, longitude, latitude, data[col][row])
+        print(col, row, longitude, latitude, data)
         # Create the Meteo and RS data parameterisation for lingraRS
         meteolist = mkmeteo4lingrars(netcdffile, rsdir, longitude, latitude)
         # Run the model

@@ -2,6 +2,8 @@
 import argparse
 import sys
 from osgeo import gdal
+# Parallelization of runs
+import ray
 # Import local libraries
 import libera5
 from libprocessLingraPixel import processlingrapixel
@@ -128,7 +130,7 @@ plot = False
 for c in range(cols):
     for r in range(rows):
         (d0[c][r], d1[c][r], d2[c][r], d3[c][r], d4[c][r], d5[c][r], d6[c][r], d7[c][r]) = \
-            processlingrapixel(c, r, data, pixelWidth, pixelHeight, xOrigin, yOrigin, plot, netcdffile, rsdir)
+        processlingrapixel(c, r, data, pixelWidth, pixelHeight, xOrigin, yOrigin, plot, args.netcdf, args.RSdir)
 
 # Write arrays to files
 b0.WriteArray(d0)

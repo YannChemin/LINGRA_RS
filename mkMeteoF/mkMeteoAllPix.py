@@ -4,9 +4,7 @@ import sys
 from osgeo import gdal
 # Import local libraries
 import libera5
-from libmkMeteo import mkmeteo4lingrars
-# import main lingraRS library
-from liblingraRS import lingrars
+from libprocessLingraPixel import processlingrapixel
 
 Requirements = """
 *---------------------------------------------------------------------------*
@@ -62,13 +60,11 @@ band = dataset.GetRasterBand(1)
 
 cols = dataset.RasterXSize
 rows = dataset.RasterYSize
-
 transform = dataset.GetGeoTransform()
-
 xOrigin = transform[0]
 yOrigin = transform[3]
-pixelWidth = int(transform[1])
-pixelHeight = int(-transform[5])
+pixelWidth = transform[1]
+pixelHeight = -transform[5]
 
 data = band.ReadAsArray(0, 0, cols, rows)
 # Create output files
@@ -125,30 +121,14 @@ d5.fill(no_data)
 d6.fill(no_data)
 d7.fill(no_data)
 
+# DEBUG ONLY: True
+plot = False
+
 # Start processing the model for each grass pixel
-for col in range(cols):
-    for row in range(rows):
-        if data[col][row] == 1:
-            # TODO Ensure only grassland pixels get selected!
-            longitude = col * pixelWidth + xOrigin
-            latitude = yOrigin - row * pixelHeight
-            print(col, row, longitude, latitude, data[col][row])
-            # Do not plot the model run output
-            plot = False
-            # Create the Meteo and RS data parameterisation for lingraRS
-            meteolist = mkmeteo4lingrars(args.netcdf, args.RSdir, longitude, latitude)
-            # Run th model
-            (tiller, yielD, wlvg, wlvd1, parcu, grass, tracu, evacu) = lingrars(latitude, meteolist, plot)
-            # Let the pixels fit into each map (*1000 bc INT32 maps)
-            d0[col][row] = tiller * 1000
-            d1[col][row] = yielD * 1000
-            d2[col][row] = wlvg * 1000
-            d3[col][row] = wlvd1 * 1000
-            # TODO check values out for print("parcu=", parcu)
-            d4[col][row] = parcu  # Already a large number
-            d5[col][row] = grass * 1000
-            d6[col][row] = tracu  # Already a large number
-            d7[col][row] = evacu  # Already a large number
+for c in range(cols):
+    for r in range(rows):
+        (d0[c][r], d1[c][r], d2[c][r], d3[c][r], d4[c][r], d5[c][r], d6[c][r], d7[c][r]) = \
+            processlingrapixel(c, r, data, pixelWidth, pixelHeight, xOrigin, yOrigin, plot, netcdffile, rsdir)
 
 # Write arrays to files
 b0.WriteArray(d0)

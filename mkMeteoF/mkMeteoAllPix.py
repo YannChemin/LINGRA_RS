@@ -135,7 +135,7 @@ for c in range(cols):
     # (d0[c][r], d1[c][r], d2[c][r], d3[c][r], d4[c][r], d5[c][r], d6[c][r], d7[c][r]) = \
     # processlingrapixel(c, r, data[c][r], pixelWidth, pixelHeight, xOrigin, yOrigin, plot, args.netcdf, args.RSdir)
     lingrarow = [processlingrapixel.remote(c, r, data[c][r], pixelWidth, pixelHeight, xOrigin, yOrigin,
-                                           plot, args.netdfc, args.RSdir) for r in range(rows)]
+                                           plot, args.netcdf, args.RSdir) for r in range(rows)]
     output = ray.get(lingrarow)
     for r in range(rows):
         d0[c][r] = output[r][0]

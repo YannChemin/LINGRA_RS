@@ -8,7 +8,7 @@ export PATH=$PATH:/Library/Frameworks/GDAL.framework/Versions/3.1/Programs/
 #parser.add_argument("RSdir", help="name of RS LAI/ET/etc directory")
 ####################
 
-grassland="$HOME/Documents/GRA_2018_10m/GRA_2018_EU.tif"
+grassland="$HOME/Documents/GRA_2018_10m/GRA_2018_BE.tif"
 netcdf="$HOME/Documents/ERA5/ERA5_EU_2020.nc"
 RSdir="$HOME/Documents/MODIS/"
 

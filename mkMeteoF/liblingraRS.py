@@ -14,15 +14,24 @@
 #     biomass in leaves, reserves, etc. in kg dm / ha
 #     terms of water balance in mm/day
 
+
+
 def lingrars(latitude, meteolist, plot):
     """
     Function for Lingra_RS
     :param latitude: required for daylength calculation
     :param meteolist: input for weather and RS params
     :param plot: False (process mode) or True (debug only)
-    :return:[tiller[-1], yielD[-1], wlvg[-1], wlvd1[-1], parcu[-1], grass[-1], tracu[-1], evacu[-1]]
+    :return:[tiller[-1], yielD[-1], wlvg[-1], wlvd1[-1], wa[-1], grass[-1], tracu[-1], evacu[-1]]
     """
     import numpy as np
+    # GPU offload
+    # from numba import jit, cuda
+    # function optimized to run on gpu
+    # @jit(target="cuda")
+    # def func2(a):
+    #    for i in range(10000000):
+    #        a[i] += 1
     # latitude (used to calculate daylength;
     year = meteolist[0]  # year in weather file
     doy = meteolist[1]  # doy of the year
@@ -620,5 +629,5 @@ def lingrars(latitude, meteolist, plot):
     # write.csv(output, file= "m:/r/output/lingra.csv") # write output to a .csv file
 
     # Return last day of processing values
-    output = [tiller[-1], yielD[-1], wlvg[-1], wlvd1[-1], parcu[-1], grass[-1], tracu[-1], evacu[-1]]
+    output = [tiller[-1], yielD[-1], wlvg[-1], wlvd1[-1], wa[-1], grass[-1], tracu[-1], evacu[-1]]
     return output

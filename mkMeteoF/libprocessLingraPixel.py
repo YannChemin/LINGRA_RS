@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import ray
 
-
 @ray.remote
 def processlingrapixel(col, row, data, pixelWidth, pixelHeight, xO, yO, plot, netcdffile, rsdir):
     """
@@ -30,11 +29,11 @@ def processlingrapixel(col, row, data, pixelWidth, pixelHeight, xO, yO, plot, ne
         # Create the Meteo and RS data parameterisation for lingraRS
         meteolist = mkmeteo4lingrars(netcdffile, rsdir, longitude, latitude)
         # Run the model
-        (tiller, yielD, wlvg, wlvd1, parcu, grass, tracu, evacu) = lingrars(latitude, meteolist, plot)
+        (tiller, yielD, wlvg, wlvd1, wa, grass, tracu, evacu) = lingrars(latitude, meteolist, plot)
         # exit() TODO plot the graphs and check if all ok
         # Let the pixels fit into each map (*1000 bc INT32 maps)
         # TODO check values out for print("parcu=", parcu)
-        return tiller * 1000, yielD * 1000, wlvg * 1000, wlvd1 * 1000, parcu / 1000000, grass * 1000, tracu, evacu
+        return tiller * 1000, yielD * 1000, wlvg * 1000, wlvd1 * 1000, wa * 1000, grass * 1000, tracu, evacu
     else:
         # Return something to the parallelization procedure storage array
         return 0, 0, 0, 0, 0, 0, 0, 0

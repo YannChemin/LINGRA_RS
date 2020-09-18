@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+@ray.remote
 def processlingrapixel(col, row, data, pixelWidth, pixelHeight, xO, yO, plot, netcdffile, rsdir):
 	"""
 	Launch a single pixel of processing for LingraRS
@@ -31,3 +32,6 @@ def processlingrapixel(col, row, data, pixelWidth, pixelHeight, xO, yO, plot, ne
 		# Let the pixels fit into each map (*1000 bc INT32 maps)
 		# TODO check values out for print("parcu=", parcu)
 		return tiller*1000, yielD*1000, wlvg*1000, wlvd1*1000, parcu, grass*1000, tracu, evacu
+	else:
+		# Return something to the parallelization procedure storage array
+		return 0, 0, 0, 0, 0, 0, 0, 0

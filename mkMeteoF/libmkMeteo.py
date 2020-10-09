@@ -14,7 +14,7 @@ def mkmeteo4lingrars(netcdf, rsdir, longitude, latitude):
     Column  Daily value
     1       year
     2       day
-    3       irradiation                   (J m-2 d-1)
+    3       irradiation                   (kJ m-2 d-1)
     4       minimum temperature           (degrees Celsius)
     5       maximum temperature           (degrees Celsius)
     6       early morning vapour pressure (kPa)

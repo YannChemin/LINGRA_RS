@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 import sys
+from time import sleep
+
 from osgeo import gdal
 # Parallelization of runs, has to be defined before local libs!
 import ray
@@ -127,25 +129,37 @@ d7.fill(no_data)
 plot = False
 
 # Parallel code
-ray.init(num_cpus=6, ignore_reinit_error=True)
+ray.init(num_cpus=16, ignore_reinit_error=True)
 
 # Start processing the model for each grass pixel
 for c in range(cols):
     # for r in range(rows):
-    # (d0[c][r], d1[c][r], d2[c][r], d3[c][r], d4[c][r], d5[c][r], d6[c][r], d7[c][r]) = \
-    # processlingrapixel(c, r, data[c][r], pixelWidth, pixelHeight, xOrigin, yOrigin, plot, args.netcdf, args.RSdir)
+    # (c, r, d0[c][r], d1[c][r], d2[c][r], d3[c][r], d4[c][r], d5[c][r], d6[c][r], d7[c][r]) = \
+    # processlingrapixel(r, data[c][r], pixelWidth, pixelHeight, xOrigin, yOrigin, plot, args.netcdf, args.RSdir)
     lingrarow = [processlingrapixel.remote(c, r, data[c][r], pixelWidth, pixelHeight, xOrigin, yOrigin,
                                            plot, args.netcdf, args.RSdir) for r in range(rows)]
-    output = ray.get(lingrarow)
-    for r in range(rows):
-        d0[c][r] = output[r][0]
-        d1[c][r] = output[r][1]
-        d2[c][r] = output[r][2]
-        d3[c][r] = output[r][3]
-        d4[c][r] = output[r][4]
-        d5[c][r] = output[r][5]
-        d6[c][r] = output[r][6]
-        d7[c][r] = output[r][7]
+    for li in range(len(lingrarow)):
+        ready_ids, not_ready_ids = ray.wait(lingrarow[li])
+        while len(not_ready_ids) > 1:
+            sleep(10)
+            ready_ids, not_ready_ids = ray.wait(lingrarow[li])
+            print(not_ready_ids)
+
+    for li in range(len(lingrarow)):
+        output = ray.get(lingrarow[li])
+        row = output[0]
+        print(output[0])
+        print(output[1])
+        print(output[2])
+        d0[c][row] = output[1]
+        d1[c][row] = output[2]
+        d2[c][row] = output[3]
+        d3[c][row] = output[4]
+        d4[c][row] = output[5]
+        d5[c][row] = output[6]
+        d6[c][row] = output[7]
+        d7[c][row] = output[8]
+    exit()
 
 # Write arrays to files
 b0.WriteArray(d0)

@@ -7,7 +7,7 @@ netcdf="$HOME/Documents/ERA5/ERA5_EU_2020.nc"	#name of NETCDF file to access
 #RS directory access handle
 RSdir="$HOME/Documents/MODIS"	#name of RS LAI/ET/etc directory
 
-longitude=0.0
-latitude=47.0
+longitude="0.0"
+latitude="47.0"
 output="rs.csv" 	#name of output Meteo txt file
 ./mkMeteo.py "$netcdf" "$RSdir" $longitude $latitude $output

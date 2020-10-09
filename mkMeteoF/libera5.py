@@ -100,12 +100,17 @@ def getPixelVals(netcdffile, layer, longitude, latitude):
     # extract lat/lon values (in degrees) to numpy arrays
     latvals = lat[:]
     lonvals = lon[:]
+    print(lonvals.shape)
+    print(latvals.shape)
     xl = np.linspace(lonvals.min(), lonvals.max(), lonvals.shape[0])
     yl = np.linspace(latvals.min(), latvals.max(), latvals.shape[0])
     xx, yy = np.meshgrid(xl, yl, sparse=True)
 
     def distance_2d(longitude, latitude, xgrid, ygrid):
-        return np.hypot(xgrid - longitude, ygrid - latitude)
+        print(longitude, latitude)
+        print(xgrid)
+        print(ygrid)
+        return np.hypot(np.subtract(xgrid,longitude), np.subtract(ygrid,latitude))
 
     dist_grid = distance_2d(longitude, latitude, xx, yy)
     minval = dist_grid.min()

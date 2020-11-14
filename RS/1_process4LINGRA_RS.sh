@@ -10,21 +10,21 @@ RSDTRoot=/Users/dnd/Documents/MODIS
 
 #Clean & Make
 progRoot=$HOME/Documents/GitHub/distRS/prog
-cd $progRoot/prog_fc
+cd "$progRoot"/prog_fc
 make clean
 make
-cd $progRoot/prog_NDVI
+cd "$progRoot"/prog_NDVI
 make clean
 make
-cd $progRoot/prog_LAI
+cd "$progRoot"/prog_LAI
 make clean
 make
-cd $progRoot/prog_ETa_MODIS
+cd "$progRoot"/prog_ETa_MODIS
 make clean
 make
 
 #GO TO PROCESSING DIRECTORY
-cd $RSDTRoot
+cd "$RSDTRoot"
 
 #Clean up previous jobs
 mkdir -p xml
@@ -35,17 +35,16 @@ for file in MOD13Q1*.hdf
 do
   NDVIF=$(gdalinfo "$file" | grep SUBDATASET_1_NAME | sed "s/\ \ SUBDATASET_1_NAME=//")
   NDVIOUT=$(echo "$NDVIF" | sed "s/HDF4_EOS:EOS_GRID:\"\(.*\)\":\(.*\)/\1/" | sed "s/.hdf/_NDVI.tif/")
-  FEXISTS=$(test -f "$NDVIOUT" && echo 1 || echo 0)
   if [ -f "$NDVIOUT" ];
   then
-    echo "$NDVIF"
+    #echo "$NDVIF"
     echo "$NDVIOUT exists, Not Overwriting.";
   else
         echo "$NDVIF"
         #Offset=$(gdalinfo $NDVIF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\1/")
         #Scale=$(gdalinfo $NDVIF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\2/")
         NDVIFQC=$(gdalinfo "$file" | grep SUBDATASET_12_NAME | sed "s/\ \ SUBDATASET_12_NAME=//")
-        $progRoot/prog_NDVI/ndvi "$NDVIF" "$NDVIFQC" "$NDVIOUT" #$Offset $Scale
+        "$progRoot"/prog_NDVI/ndvi "$NDVIF" "$NDVIFQC" "$NDVIOUT" #$Offset $Scale
         #TODO integrate -co into distRS code directly
         gdal_translate -q -co "COMPRESS=DEFLATE" -co "TILED=YES" "$NDVIOUT" tmp"$NDVIOUT"
         mv tmp"$NDVIOUT" "$NDVIOUT";
@@ -66,7 +65,7 @@ do
     #Offset=$(gdalinfo $LAIF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\1/")
     #Scale=$(gdalinfo $LAIF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\2/")
     LAIFQC=$(gdalinfo "$file" | grep SUBDATASET_3_NAME | sed "s/\ \ SUBDATASET_3_NAME=//")
-    $progRoot/prog_LAI/lai "$LAIF" "$LAIFQC" "$LAIOUT" #$Offset $Scale
+    "$progRoot"/prog_LAI/lai "$LAIF" "$LAIFQC" "$LAIOUT" #$Offset $Scale
     #TODO integrate -co into distRS code directly
     gdal_translate -q -co "COMPRESS=DEFLATE" -co "TILED=YES" "$LAIOUT" tmp"$LAIOUT"
     mv tmp"$LAIOUT" "$LAIOUT"
@@ -87,7 +86,7 @@ do
     #Offset=$(gdalinfo $ETAF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\1/")
     #Scale=$(gdalinfo $ETAF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\2/")
     ETAFQC=$(gdalinfo "$file" | grep SUBDATASET_5_NAME | sed "s/\ \ SUBDATASET_5_NAME=//")
-    $progRoot/prog_ETa_MODIS/eta "$ETAF" "$ETAFQC" "$ETAOUT" #$Offset $Scale
+    "$progRoot"/prog_ETa_MODIS/eta "$ETAF" "$ETAFQC" "$ETAOUT" #$Offset $Scale
     #TODO integrate -co into distRS code directly
     gdal_translate -q -co "COMPRESS=DEFLATE" -co "TILED=YES" "$ETAOUT" tmp"$ETAOUT"
     mv tmp"$ETAOUT" "$ETAOUT"
@@ -103,14 +102,14 @@ do
   then
     echo "$ETAOUT exists, Not Overwriting."
   else
-    echo $ETAF
+    echo "$ETAF"
     #Offset=$(gdalinfo $ETAF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\1/")
     #Scale=$(gdalinfo $ETAF | grep Offset:\ | sed "s/\ \ Offset:\ \(.*\),\ \ \ Scale:\(.*\)/\2/")
     ETAFQC=$(gdalinfo "$file" | grep SUBDATASET_5_NAME | sed "s/\ \ SUBDATASET_5_NAME=//")
-    $progRoot/prog_ETa_MODIS/eta $ETAF $ETAFQC $ETAOUT #$Offset $Scale
+    "$progRoot"/prog_ETa_MODIS/eta "$ETAF" "$ETAFQC" "$ETAOUT" #$Offset $Scale
     #TODO integrate -co into distRS code directly
-    gdal_translate -q -co "COMPRESS=DEFLATE" -co "TILED=YES" $ETAOUT tmp$ETAOUT
-    mv tmp$ETAOUT $ETAOUT
+    gdal_translate -q -co "COMPRESS=DEFLATE" -co "TILED=YES" "$ETAOUT" tmp"$ETAOUT"
+    mv tmp"$ETAOUT" "$ETAOUT"
   fi
 done
 
@@ -130,32 +129,32 @@ endd=2020366
 # Overwrite by default : Clean slate
 OVR='-overwrite'
 
-for ((date = $startd; date <= $endd; date++))
+for ((date = startd; date <= endd; date++))
 do
   MODIS='MOD13Q1'
   l=$(find $MODIS.A$date*_NDVI.tif 2>/dev/null | wc -l)
-  if [ $l -gt 2 ]; then
-    gdalbuildvrt -q $OVR -srcnodata 255 -vrtnodata 255 $MODIS\_$date.vrt $(ls $MODIS*$date*_NDVI.tif)
+  if [ "$l" -gt 2 ]; then
+    gdalbuildvrt -q $OVR -srcnodata 255 -vrtnodata 255 $MODIS\_$date.vrt "$(ls $MODIS*$date*_NDVI.tif)"
     #Create Fraction of Vegetation Cover
     FCOUT=$(echo $MODIS\_$date.vrt | sed 's/.vrt/_FC.tif/')
-    gdal_translate -q -co "COMPRESS=DEFLATE" -co "TILED=YES" $MODIS\_$date.vrt $FCOUT
-    $progRoot/prog_fc/fc $FCOUT tmp$FCOUT
-    mv tmp$FCOUT $FCOUT
+    gdal_translate -q -co "COMPRESS=DEFLATE" -co "TILED=YES" $MODIS\_$date.vrt "$FCOUT"
+    "$progRoot"/prog_fc/fc "$FCOUT" tmp"$FCOUT"
+    mv tmp"$FCOUT" "$FCOUT"
   fi
   MODIS='MCD15A2H'
   l=$(find $MODIS.A$date*_LAI.tif 2>/dev/null | wc -l)
-  if [ $l -gt 2 ]; then
-    gdalbuildvrt -q $OVR -srcnodata 255 -vrtnodata 255 $MODIS\_$date.vrt $(ls $MODIS*$date*_LAI.tif) &
+  if [ "$l" -gt 2 ]; then
+    gdalbuildvrt -q $OVR -srcnodata 255 -vrtnodata 255 $MODIS\_$date.vrt "$(ls $MODIS*$date*_LAI.tif)" &
   fi
   MODIS='MOD16A2'
   l=$(find $MODIS.A$date*_ETA.tif 2>/dev/null | wc -l)
-  if [ $l -gt 2 ]; then
-    gdalbuildvrt -q $OVR -srcnodata 32767 -vrtnodata 32767 $MODIS\_$date.vrt $(ls $MODIS*$date*_ETA.tif) &
+  if [ "$l" -gt 2 ]; then
+    gdalbuildvrt -q $OVR -srcnodata 32767 -vrtnodata 32767 $MODIS\_$date.vrt "$(ls $MODIS*$date*_ETA.tif)" &
   fi
   MODIS='MYD16A2'
   l=$(find $MODIS.A$date*_ETA.tif 2>/dev/null | wc -l)
-  if [ $l -gt 2 ]; then
-    gdalbuildvrt -q $OVR -srcnodata 32767 -vrtnodata 32767 $MODIS\_$date.vrt $(ls $MODIS*$date*_ETA.tif) &
+  if [ "$l" -gt 2 ]; then
+    gdalbuildvrt -q $OVR -srcnodata 32767 -vrtnodata 32767 $MODIS\_$date.vrt "$(ls $MODIS*$date*_ETA.tif)" &
   fi
 done
 

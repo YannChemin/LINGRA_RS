@@ -8,7 +8,7 @@ from osgeo import gdal
 import ray
 # Import local libraries
 import libera5
-from libprocessLingraPixel import processlingrapixel
+from libprocessLingraRow import processlingrarow
 
 Requirements = """
 *---------------------------------------------------------------------------*
@@ -37,6 +37,7 @@ Header = """
 * 10      RS transpiration              (mm d-1)
 * 11      RS LAI                        (m2.m-2)
 * 12      RS cut event                  (0/1)
+* 13      RS soil moisture              (cm3/cm3)
 *---------------------------------------------------------------------------*
 """
 
@@ -44,7 +45,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("grassland", help="name of Copernicus Grassland file to access (INT32!)")
 parser.add_argument("netcdf", help="name of NETCDF ERA5 file to access")
 parser.add_argument("RSdir", help="name of RS LAI/ET/etc directory")
-if len(sys.argv) < 4:
+parser.add_argument("SMdir", help="name of RS BEC-SMOS 1Km directory")
+if len(sys.argv) < 5:
     parser.print_help(sys.stderr)
     print(Requirements)
     print(Header)
@@ -129,24 +131,26 @@ d7.fill(no_data)
 plot = False
 
 # Parallel code
-ray.init(num_cpus=16, ignore_reinit_error=True)
+ray.init(local_mode=True, address="localhost:6379")
+#, num_cpus=16, ignore_reinit_error=True)
+#ray.init(num_cpus=7, num_gpus=1) #, memory= < bytes >, object_store_memory = < bytes >)
 
 # Start processing the model for each grass pixel
 for c in range(cols):
     # for r in range(rows):
     # (c, r, d0[c][r], d1[c][r], d2[c][r], d3[c][r], d4[c][r], d5[c][r], d6[c][r], d7[c][r]) = \
     # processlingrapixel(r, data[c][r], pixelWidth, pixelHeight, xOrigin, yOrigin, plot, args.netcdf, args.RSdir)
-    lingrarow = [processlingrapixel.remote(c, r, data[c][r], pixelWidth, pixelHeight, xOrigin, yOrigin,
-                                           plot, args.netcdf, args.RSdir) for r in range(rows)]
-    for li in range(len(lingrarow)):
-        ready_ids, not_ready_ids = ray.wait(lingrarow[li])
+    lingrarow = [processlingrarow.remote(c, rows, data[c], pixelWidth, pixelHeight, xOrigin, yOrigin,
+                                           plot, args.netcdf, args.RSdir, args.SMdir) for r in range(rows)]
+    for row in range(rows):
+        ready_ids, not_ready_ids = ray.wait(lingrarow[row])
         while len(not_ready_ids) > 1:
             sleep(10)
-            ready_ids, not_ready_ids = ray.wait(lingrarow[li])
+            ready_ids, not_ready_ids = ray.wait(lingrarow[row])
             print(not_ready_ids)
 
-    for li in range(len(lingrarow)):
-        output = ray.get(lingrarow[li])
+    for row in range(row):
+        output = ray.get(lingrarow[row])
         row = output[0]
         print(output[0])
         print(output[1])
@@ -159,7 +163,6 @@ for c in range(cols):
         d5[c][row] = output[6]
         d6[c][row] = output[7]
         d7[c][row] = output[8]
-    exit()
 
 # Write arrays to files
 b0.WriteArray(d0)

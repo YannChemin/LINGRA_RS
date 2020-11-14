@@ -11,5 +11,9 @@ export PATH=$PATH:/Library/Frameworks/GDAL.framework/Versions/3.1/Programs/
 grassland="$HOME/Documents/GRA_2018_10m/GRA_2018_BE_WA_BRABANT.tif"
 netcdf="$HOME/Documents/ERA5/ERA5_EU_2020.nc"
 RSdir="$HOME/Documents/MODIS/"
+smosdir="$HOME/Documents/SMOS/"
 
-python3 ./mkMeteoAllPix.py "$grassland" "$netcdf" "$RSdir"
+
+ray start --head --port=6379
+python3 ./mkMeteoAllPix.py "$grassland" "$netcdf" "$RSdir" "$smosdir"
+ray stop

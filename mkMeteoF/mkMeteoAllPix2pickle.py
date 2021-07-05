@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 import argparse
-import sys
-import pickle
-from osgeo import gdal
+import sys, os
+from subprocess import check_output
+import multiprocessing
 from time import sleep
+from osgeo import gdal
+
 # Import local libraries
 import libera5
-from libmkMeteo import mkmeteo4lingrars
+import libmkMeteo
+
+def get_pid(name):
+    return list(map(int,check_output(["pidof",name]).split()))
 
 Requirements = """
 *---------------------------------------------------------------------------*
@@ -52,7 +57,7 @@ if len(sys.argv) < 6:
     sys.exit(1)
 args = parser.parse_args()
 
-homedirout="/Users/dnd/Downloads/data_"
+homedirout = "/Users/dnd/Downloads/data_"
 # Extract time array in python datetime
 time_convert = libera5.getTimeNetcdf(args.netcdf)
 
@@ -71,25 +76,44 @@ band = dataset.GetRasterBand(1)
 cols = dataset.RasterXSize
 rows = dataset.RasterYSize
 data = band.ReadAsArray(0, 0, cols, rows)
+
+#Try to get the number of cores available
+try:
+    ncores = multiprocessing.cpu_count()
+except:
+    ncores = 8
+
+# TODO Temporary force not to overwhelm poor lil'Mac
+ncores=4
+
+# Define slave name to search in ps aux
+slavename = "mkMeteo.py"
+
 # Start processing the model for each grass pixel
 for c in range(cols):
+    print("data[%d/%d]" % (c, cols))
     for r in range(rows):
+        # Hold on more processing as long as we have too many slave PIDs
+        while len(get_pid(slavename)) >= ncores:
+            sleep(10)
+        # Process the pixel
         if data[c][r] == 1:
-            filename = homedirout+str(c)+"_"+str(r)+"_"+args.output
+            filename = homedirout + str(c) + "_" + str(r) + "_" + args.output
             try:
                 f = open(filename)
                 f.close()
             except FileNotFoundError:
+                print("data[%d/%d][%d/%d]" % (c, cols, r, rows))
                 longitude = c * pixelWidth + xO
                 latitude = yO - r * pixelHeight
                 # print(col, row, longitude, latitude, data)
-                meteolist = mkmeteo4lingrars(args.netcdf, args.rsdir, args.smdir, longitude, latitude)
-                with open(filename, 'wb') as f:
-                    pickle.dump(meteolist, f)
-                sleep(10)
-            finally:
-                f.close()
-
+                pickle = True
+                os.system("/bin/bash /Users/dnd/Documents/GitHub/LINGRA_RS/mkMeteoF/mkMeteo.sh %s %s %s %f %f %s %s"
+                          % (args.netcdf, args.rsdir, args.smdir, longitude, latitude, args.output, pickle))
+                # meteolist = libmkMeteo.mkmeteo4lingrars(netcdf, rsdir, smdir, longitude, latitude)
+                # with open(filename, 'wb') as f:
+                #    pickle.dump(meteolist, f)
+                # f.close()
 
 # Complete the process by signalling the user
 print('\033[32m', "Processing DONE", '\033[0m', sep='')

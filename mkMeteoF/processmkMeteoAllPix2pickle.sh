@@ -11,5 +11,5 @@ RSdir="$HOME/Documents/MODIS"	#name of RS LAI/ET/etc directory
 becsmosdir="$HOME/Documents/SMOS"
 #base name of output pickled list
 output="Wallonie_Brabant" 	#name of output Meteo txt file
-./mkMeteoF/mkMeteoAllPix2pickle.py "$grassland" "$netcdf" "$RSdir" "$becsmosdir" "$output"
+python3 /Users/dnd/Documents/GitHub/LINGRA_RS/mkMeteoF/mkMeteoAllPix2pickle.py "$grassland" "$netcdf" "$RSdir" "$becsmosdir" "$output"
 

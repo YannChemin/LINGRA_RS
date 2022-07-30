@@ -1,5 +1,5 @@
 # LINGRA_RS
- [LINGRA][1] in Python bypassed by Satellite Remote Sensing data in many places
+ [LINGRA][1] in Python bypassed by Satellite Remote Sensing data in many places and input from ERA5 live weaether dataset
 
 ![output](https://github.com/YannChemin/LINGRA_RS/blob/master/Figure_1.png "LINGRA_RS output")
 

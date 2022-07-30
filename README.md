@@ -1,5 +1,5 @@
 # LINGRA_RS
- [LINGRA][1] grass growth and production model translated in Python bypassed by Satellite Remote Sensing data in many places and input from [ERA5][2] live weather dataset
+ [LINGRA][1] grass growth and production model translated in Python bypassed by Satellite Remote Sensing data and input from [ERA5][2] live weather dataset
 
 ![output](https://github.com/YannChemin/LINGRA_RS/blob/master/Figure_1.png "LINGRA_RS output")
 

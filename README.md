@@ -33,5 +33,28 @@ The actual growth is determined by the minimum value of either sink or source.
 > python3 lingraRS.py 52.0 NL1.987.rs.csv
 ```
 
+## Input file structure
+
+```
+0    year      # year in weather file
+1    doy       # doy of the year
+2    rdd       # solar radiation (kj m-2 day-1)
+3    tmmn      # minimum temperature (degrees celsius)
+4    tmmx      # maximum temperature (degrees celsius)
+5    vp        # water vapour pressure (kpa)
+6    wn        # average wind speed (m s-1)
+7    rain      # daily rainfall (mm day-1)
+8    RSevp     # daily RS Evaporation actual (mm day-1)
+9    RStrn     # daily RS Transpiration actual (mm day-1)
+10   RSlai     # daily RS LAI (-)
+11   RScut     # daily RS cutting event (0/1)
+```
+
+## Input file example
+
+```
+
+```
+
 [1]: https://models.pps.wur.nl/lingra-model-simple-grass-model-potential-and-water-limited-conditions 
 [2]: https://www.ecmwf.int/en/forecasts/datasets/reanalysis-datasets/era5
